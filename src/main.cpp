@@ -19,6 +19,9 @@
 //
 
 #include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
 #include <MD_MAX72xx.h>
 #include <SPI.h>
 
@@ -60,6 +63,7 @@ const char* password = "YDJ24111984";
 
 // WiFi Server object and parameters
 WiFiServer server(80);
+WiFiServer TelnetServer(8266);
 
 // Global message buffers shared by Wifi and Scrolling functions
 const uint8_t MESG_SIZE = 255;
@@ -344,6 +348,9 @@ void setup()
   digitalWrite(HB_LED, LOW);
 #endif
 
+  TelnetServer.begin();
+
+
   // Display initialisation
   mx.begin();
   mx.setShiftDataInCallback(scrollDataSource);
@@ -370,6 +377,37 @@ void setup()
   // Set up first message as the IP address
   sprintf(curMessage, "%03d:%03d:%03d:%03d", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
   PRINT("\nAssigned IP ", curMessage);
+
+    // Port defaults to 8266
+  //ArduinoOTA.setPort(8266);
+  // Hostname defaults to esp8266-[ChipID]
+  ArduinoOTA.setHostname("ESP8266_MATRIX");
+  // No authentication by default
+  //ArduinoOTA.setPassword((const char *)"xxxxx");
+
+  ArduinoOTA.onStart([]() {
+    Serial.println("OTA Start");
+  });
+  ArduinoOTA.onEnd([]() {
+    Serial.println("OTA End");
+    Serial.println("Rebooting...");
+  });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("Progress: %u%%\r\n", (progress / (total / 100)));
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+  });
+  ArduinoOTA.begin();
+  Serial.println("Ready");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+
 }
 
 void loop()
@@ -383,7 +421,7 @@ void loop()
     timeLast = millis();
   }
 #endif
-
+  ArduinoOTA.handle();
   handleWiFi();
   scrollText();
 }
