@@ -15,6 +15,7 @@
 #include <MD_Parola.h>
 #include <WiFiManager.h> 
 #include <SPI.h>
+#include <time.h>
 
 // Define the number of devices we have in the chain and the hardware interface
 #define	MAX_DEVICES	4
@@ -25,13 +26,11 @@
 
 MD_Parola P = MD_Parola(CS_PIN, MAX_DEVICES);
 
-uint8_t htoi(char c)
-{
-  c = toupper(c);
-  if ((c >= '0') && (c <= '9')) return(c - '0');
-  if ((c >= 'A') && (c <= 'F')) return(c - 'A' + 0xa);
-  return(0);
-}
+const char *ntpServer = "pool.ntp.org";
+const long gmtOffset_sec = 3600;
+const int daylightOffset_sec = 3600;
+
+ 
 
 
 void setup()
@@ -39,9 +38,11 @@ void setup()
   Serial.begin(115200);
   Serial.println("\n Starting");WiFiManager wifiManager;
   P.begin();
-  P.displayText("Hello", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+  //P.displayText("WIFI...", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+  P.print("WIFI");
 
   wifiManager.autoConnect("AutoConnectAP");
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer); // Ge
 
   // Port defaults to 8266
   //ArduinoOTA.setPort(8266);
@@ -60,7 +61,7 @@ void setup()
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
     Serial.printf("Progress: %u%%\r\n", (progress / (total / 100)));
   
-    P.print("UPDATE");
+    P.print("-OTA-");
 
   });
   ArduinoOTA.onError([](ota_error_t error) {
@@ -79,7 +80,11 @@ void setup()
 
 void loop()
 {
-  P.displayAnimate();
+  //P.print(hour() ":" minute());
+  //P.displayText("test123...", 0, 3, 2, 0,PA_FADE);
+  P.print("test...");
+  //Serial.println(hour() + ":" + minute());
+  delay(500);
   ArduinoOTA.handle();
   
 }
