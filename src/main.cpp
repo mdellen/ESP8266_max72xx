@@ -27,8 +27,8 @@
 MD_Parola P = MD_Parola(CS_PIN, MAX_DEVICES);
 
 const char *ntpServer = "pool.ntp.org";
-const long gmtOffset_sec = 3600;
-const int daylightOffset_sec = 3600;
+const long gmtOffset_sec = 7200;
+const int daylightOffset_sec = 0;
 
  
 
@@ -42,7 +42,7 @@ void setup()
   P.print("WIFI");
 
   wifiManager.autoConnect("AutoConnectAP");
-  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer); // Ge
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 
   // Port defaults to 8266
   //ArduinoOTA.setPort(8266);
@@ -61,7 +61,9 @@ void setup()
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
     Serial.printf("Progress: %u%%\r\n", (progress / (total / 100)));
   
-    P.print("-OTA-");
+    //P.print("-OTA-");
+    P.print("> " + String(progress / (total / 100)) +"%");
+   
 
   });
   ArduinoOTA.onError([](ota_error_t error) {
@@ -80,11 +82,32 @@ void setup()
 
 void loop()
 {
-  //P.print(hour() ":" minute());
-  //P.displayText("test123...", 0, 3, 2, 0,PA_FADE);
-  P.print("test...");
-  //Serial.println(hour() + ":" + minute());
+  time_t now;
+  struct tm * timeinfo;
+  time(&now);
+  //timeinfo = localtime(&now);  
+  timeinfo = gmtime(&now); 
+
+  //P.print(" " + String(timeinfo->tm_hour) + ":" + String(timeinfo->tm_min));
+ char buf[5];
+ int test = timeinfo->tm_hour;
+ //char* test = timeinfo->tm_hour;
+ sprintf(buf,"%2d:%2d", timeinfo->tm_hour, timeinfo->tm_min);
+  //strcpy(buf, String(timeinfo->tm_hour));
+ // Serial.printf("test %2d", (timeinfo->tm_hour)%24);
+ String tijd = asctime (timeinfo);
+// P.print(tijd);
+  P.print(buf);
+   
+  Serial.print(timeinfo->tm_hour);
+  Serial.print(":");
+  Serial.println(timeinfo->tm_min);
+  
   delay(500);
   ArduinoOTA.handle();
+
+
+  
+  delay(1000);
   
 }
