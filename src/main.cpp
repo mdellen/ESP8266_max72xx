@@ -83,27 +83,32 @@ void setup()
 
 void loop()
 {
+  static uint32_t lastTime = 0; // millis() memory
+  static bool flasher = false;  // seconds passing flasher
+  static char tijd[8];
+
   time_t now;
   struct tm *timeinfo;
   time(&now);
-  //timeinfo = localtime(&now);
+
   timeinfo = gmtime(&now);
 
-  //P.print(" " + String(timeinfo->tm_hour) + ":" + String(timeinfo->tm_min));
-  char tijd[6];
-  //char* test = timeinfo->tm_hour;
-  sprintf(tijd, "  %2d:%02d", timeinfo->tm_hour, timeinfo->tm_min);
-  //strcpy(buf, String(timeinfo->tm_hour));
-  // Serial.printf("test %2d", (timeinfo->tm_hour)%24);
-
-  P.print(tijd);
-  Serial.println(tijd);
-  //Serial.print(timeinfo->tm_hour);
-  //Serial.print(":");
-  //Serial.println(timeinfo->tm_min);
-
-  delay(500);
   ArduinoOTA.handle();
 
-  delay(1000);
+  if (millis() - lastTime >= 1000)
+  {
+    int h, m;
+    h = timeinfo->tm_hour;
+    m = timeinfo->tm_min;
+
+    sprintf(tijd, " %02d%c%02d", h, (flasher ? ':' : '|'), m);
+    lastTime = millis();
+    flasher = !flasher;
+
+    P.print(tijd);
+    Serial.println(tijd);
+
+    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  }
+  // delay(500);
 }
