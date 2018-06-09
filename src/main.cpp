@@ -12,19 +12,23 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <MD_MAX72xx.h>
+//#include <MD_MAXPanel.h>
 #include <MD_Parola.h>
 #include <WiFiManager.h>
 #include <SPI.h>
 #include <time.h>
 
 // Define the number of devices we have in the chain and the hardware interface
-#define MAX_DEVICES 4
+#define HARDWARE_TYPE MD_MAX72XX::FC16_HW
 
+#define MAX_DEVICES 4
 #define CLK_PIN D5  // or SCK
 #define DATA_PIN D7 // or MOSI
 #define CS_PIN D8   // or SS
 
-MD_Parola P = MD_Parola(CS_PIN, MAX_DEVICES);
+MD_Parola P = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
+// Create the graphics library object, passing through the Parola MD_MAX72XX graphic object
+//MD_MAXPanel MP = MD_MAXPanel(P.getGraphicObject(), MAX_DEVICES, 1);
 
 const char *ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = 7200;
@@ -36,9 +40,10 @@ void setup()
   Serial.println("\n Starting");
   WiFiManager wifiManager;
   P.begin();
+  //MP.begin();
   //P.displayText("WIFI...", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
   P.print("> WIFI");
-
+  wifiManager.setConnectTimeout(15);
   wifiManager.autoConnect("AutoConnectAP");
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 
@@ -60,6 +65,7 @@ void setup()
     Serial.printf("Progress: %u%%\r\n", (progress / (total / 100)));
 
     //P.print("-OTA-");
+    P.setTextAlignment(PA_LEFT);
     P.print("> " + String(progress / (total / 100)) + "%");
   });
   ArduinoOTA.onError([](ota_error_t error) {
@@ -85,7 +91,7 @@ void loop()
 {
   static uint32_t lastTime = 0; // millis() memory
   static bool flasher = false;  // seconds passing flasher
-  static char tijd[8];
+  static char tijd[7];
 
   time_t now;
   struct tm *timeinfo;
@@ -94,6 +100,7 @@ void loop()
   timeinfo = gmtime(&now);
 
   ArduinoOTA.handle();
+  P.displayAnimate();
 
   if (millis() - lastTime >= 1000)
   {
@@ -101,14 +108,19 @@ void loop()
     h = timeinfo->tm_hour;
     m = timeinfo->tm_min;
 
-    sprintf(tijd, " %02d%c%02d", h, (flasher ? ':' : '|'), m);
+    sprintf(tijd, "%02d%c%02d", h, (flasher ? ':' : '|'), m);
     lastTime = millis();
     flasher = !flasher;
 
-    P.print(tijd);
+    //P.print(tijd);
+    P.displayReset();
+    P.displayText(tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+   // MP.update(false);
+   // MP.drawLine(6,0,6,16,1);
+   // MP.update(true);
     Serial.println(tijd);
 
-    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+    //configTime(gmtOffset_sec, daylightOffset_sec, ntpServer); //only once a minute?
   }
   // delay(500);
 }
