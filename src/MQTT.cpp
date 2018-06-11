@@ -4,12 +4,11 @@ Ticker mqttReconnectTimer;
 
 Ticker wifiReconnectTimer;
 
-String mqttMessage = "No MQTT message...";
-//String weatherIcon    = "K";
-//RTC_DATA_ATTR char weatherIcon[] = "K";
-//char icyTemperature[] = "----";
-char temperature[];
-char weatherSummary[];
+//String mqttMessage = "No MQTT message...";
+
+char temperature[6];
+char weatherSummary[128];
+char mqttMessage[128]; 
 
 void mqttSetup()
 {
@@ -32,23 +31,11 @@ void connectToMqtt()
 
 void onMqttConnect(bool sessionPresent)
 {
-    // Serial.println("Connected to MQTT.");                 **********TODO
-    // Serial.print("Session present: ");
-    // Serial.println(sessionPresent);
-    uint16_t packetIdSub1 = mqttClient.subscribe("forecast/now/temperature", 2);
-    uint16_t packetIdSub2 = mqttClient.subscribe("forecast/today", 2);
-    //mqttClient.subscribe("icy/temp", 2);
-    //Serial.print("Subscribing at QoS 2, packetId: ");
-    //Serial.println(packetIdSub1);
-    //Serial.println(packetIdSub2);
-    mqttClient.publish("test/lol", 0, true, "test123");
-    //Serial.println("Publishing at QoS 0");
-    //uint16_t packetIdPub1 = mqttClient.publish("test/lol", 1, true, "test 2");
-    //Serial.print("Publishing at QoS 1, packetId: ");
-    //Serial.println(packetIdPub1);
-    //uint16_t packetIdPub2 = mqttClient.publish("test/lol", 2, true, "test 3");
-    //Serial.print("Publishing at QoS 2, packetId: ");
-    //Serial.println(packetIdPub2);
+    uint16_t packetIdSub1 = mqttClient.subscribe("display/matrix", 2);
+    //uint16_t packetIdSub2 = mqttClient.subscribe("forecast/today", 2);
+
+    mqttClient.publish("display/matrix/connected", 0, true, "test123");
+
 }
 
 void mqttKeepAlive()
@@ -109,26 +96,27 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
     Serial.println(index);
     Serial.print("  total: ");
     Serial.println(total);
- 
-    //The paylod has to be NULL terminated to be ased as a String to display
-    char mqttMessage[len+1]; // size for temporary array with an extra spot for a NULL (if needed)
-    strlcpy(mqttMessage, payload, len+1); // copy the array, up to len limit max + 1
-    mqttMessage[len] = '\0'; // null terminate final char of the new array, strlcpy does this, but you should get a good habbit of doing it as well, especially if your new at char arrays
-    Serial.println("");
 
-    //char* mqttTopic = 
-    
-    if (strcmp(topic,"forecast/now/temperature") == 0 )
+    //The paylod has to be NULL terminated to be ased as a String to display
+    //char mqttMessage[len + 1];              // size for temporary array with an extra spot for a NULL (if needed)
+    //strlcpy(mqttMessage, payload, len + 1); // copy the array, up to len limit max + 1
+    strncpy(mqttMessage, payload, 128); // copy the array, up to len limit max + 1
+   // mqttMessage[len] = '\0';                // null terminate final char of the new array, strlcpy does this, but you should get a good habbit of doing it as well, especially if your new at char arrays
+   // Serial.println("");
+   scroll;
+   /* if (strcmp(topic, "forecast/now/temperature") == 0)
     {
-        strcpy(temperature, mqttMessage);
+        strncpy(temperature, mqttMessage, 6);
         Serial.print("Temperature: ");
         Serial.println(temperature);
     }
-    //char* mqttTopic2 =  "icy/temp";
-    if (strcmp(topic,"forecast/today") == 0 )
+    //char* mqttTopic2 =  "icy/temp";*/
+    if (strcmp(topic, "display/matrix") == 0)
     {
-        strcpy(weatherSummary, mqttMessage);
-        Serial.print("Forecast: ");
+
+        strncpy(weatherSummary, mqttMessage, 128);
+
+        Serial.print("Message: ");
         Serial.println(weatherSummary);
     }
 }

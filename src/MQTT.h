@@ -17,8 +17,11 @@ extern Ticker mqttReconnectTimer;
 //extern char* mqttMessage;
 extern char* mqttTemp[];
 //extern String weatherIcon;
-extern char temperature[6];
-extern char weatherSummary[60];
+extern char temperature[];
+extern char weatherSummary[];
+extern char mqttMessage[];
+
+void scroll();
 
 
 void mqttSetup();

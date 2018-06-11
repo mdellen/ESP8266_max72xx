@@ -40,16 +40,14 @@ Ticker scrollText;
 MD_Parola P = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
 // Create the graphics library object, passing through the Parola MD_MAX72XX graphic object
 //MD_MAXPanel MP = MD_MAXPanel(P.getGraphicObject(), MAX_DEVICES, 1);
-
-
-
 const char *ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = 7200;
 const int daylightOffset_sec = 0;
 
 void scroll(){
-  if (P.getZoneStatus(ZONE_LOWER)) {
-  P.displayZoneText(ZONE_LOWER, weatherSummary, PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
+  if (P.getZoneStatus(ZONE_LOWER)) { //wait untill animation is done
+  //P.displayZoneText(ZONE_LOWER, weatherSummary, PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
+  P.displayZoneText(ZONE_LOWER, mqttMessage, PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
   }
 }
 
@@ -98,7 +96,7 @@ void setup()
    // P.setTextAlignment(PA_LEFT);
    // P.print("> " + String(progress / (total / 100)) + "%");
    static char ota[7];
-   sprintf(ota, "%s%3d%s", "> ",(progress / (total / 100)), "%%");
+   sprintf(ota, "%s%3d%s", "> ",(progress / (total / 100)), "%");
    P.displayZoneText(ZONE_UPPER, "OTA", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
    P.displayZoneText(ZONE_LOWER, ota, PA_LEFT, 0, 0, PA_PRINT, PA_NO_EFFECT);
   
@@ -154,7 +152,7 @@ void loop()
 
     //P.print(tijd);
     //P.displayReset();
-    P.setIntensity(3);
+    //P.setIntensity(3);
     //P.displayText(tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
     P.displayZoneText(ZONE_UPPER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
 
