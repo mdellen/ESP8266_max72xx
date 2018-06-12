@@ -4,6 +4,8 @@
 #include <ESP32Ticker.h>
 #endif
 
+#include <ArduinoJson.h>
+
 #include <AsyncMqttClient.h>
 #define MQTT_HOST IPAddress(77,174,82,246) // www.mennovandellen.nl
 #define MQTT_PORT 1883
@@ -19,7 +21,12 @@ extern char* mqttTemp[];
 //extern String weatherIcon;
 extern char temperature[];
 extern char weatherSummary[];
-extern char mqttMessage[];
+
+struct matrix
+{
+    char mqttMessage[200];
+    int brightness;
+};
 
 void scroll();
 

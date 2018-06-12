@@ -19,14 +19,18 @@
 #include <Ticker.h>
 #include <mqtt.h>
 
+
 Ticker scrollText;
+
+extern struct matrix Matrix;
 
 // Define the number of devices we have in the chain and the hardware interface
 #define HARDWARE_TYPE MD_MAX72XX::FC16_HW
 
-#define MAX_ZONES 2
+//#define MAX_ZONES 2
 #define ZONE_SIZE 4
-#define MAX_DEVICES (MAX_ZONES * ZONE_SIZE)
+//#define MAX_DEVICES (MAX_ZONES * ZONE_SIZE)
+#define MAX_DEVICES 8
 //#define MAX_DEVICES 8
 #define CLK_PIN D5  // or SCK
 #define DATA_PIN D7 // or MOSI
@@ -45,14 +49,17 @@ const long gmtOffset_sec = 7200;
 const int daylightOffset_sec = 0;
 
 void scroll(){
+ // P.setIntensity(Matrix.brightness);
   if (P.getZoneStatus(ZONE_LOWER)) { //wait untill animation is done
   //P.displayZoneText(ZONE_LOWER, weatherSummary, PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
-  P.displayZoneText(ZONE_LOWER, mqttMessage, PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
+  P.displayZoneText(ZONE_LOWER, Matrix.mqttMessage, PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
   }
 }
 
 void setup()
 {
+  //StaticJsonBuffer<200> jsonBuffer;
+
   Serial.begin(115200);
   Serial.println("\n Starting");
   WiFiManager wifiManager;
@@ -66,7 +73,8 @@ void setup()
   P.setZoneEffect(ZONE_UPPER, true, PA_FLIP_UD);
   P.setZoneEffect(ZONE_UPPER, true, PA_FLIP_LR);
 
-  P.setIntensity(0);
+  P.setIntensity(ZONE_UPPER, 0);
+  P.setIntensity(ZONE_LOWER, Matrix.brightness);
   //P.print("> WIFI");
  
   //P.displayText(tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
@@ -138,6 +146,12 @@ void loop()
   timeinfo = gmtime(&now);
 
   ArduinoOTA.handle();
+
+   P.setIntensity(Matrix.brightness);
+ //(root.containsKey("brightness")) brightness = root["brightness"];
+ // if (root.containsKey("brightness")) P.setIntensity(root["brightness"]);
+ // if (root.containsKey("message")) strncpy(mqttMessage, root["message"], 128);
+
   P.displayAnimate();
 
   if (millis() - lastTime >= 1000)

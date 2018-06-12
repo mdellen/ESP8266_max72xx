@@ -8,7 +8,10 @@ Ticker wifiReconnectTimer;
 
 char temperature[6];
 char weatherSummary[128];
-char mqttMessage[128]; 
+//char mqttMessage[128];
+//int brightness;
+
+matrix Matrix;
 
 void mqttSetup()
 {
@@ -35,7 +38,6 @@ void onMqttConnect(bool sessionPresent)
     //uint16_t packetIdSub2 = mqttClient.subscribe("forecast/today", 2);
 
     mqttClient.publish("display/matrix/connected", 0, true, "test123");
-
 }
 
 void mqttKeepAlive()
@@ -97,28 +99,32 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
     Serial.print("  total: ");
     Serial.println(total);
 
-    //The paylod has to be NULL terminated to be ased as a String to display
-    //char mqttMessage[len + 1];              // size for temporary array with an extra spot for a NULL (if needed)
-    //strlcpy(mqttMessage, payload, len + 1); // copy the array, up to len limit max + 1
-    strncpy(mqttMessage, payload, 128); // copy the array, up to len limit max + 1
-   // mqttMessage[len] = '\0';                // null terminate final char of the new array, strlcpy does this, but you should get a good habbit of doing it as well, especially if your new at char arrays
-   // Serial.println("");
-   scroll;
-   /* if (strcmp(topic, "forecast/now/temperature") == 0)
-    {
-        strncpy(temperature, mqttMessage, 6);
-        Serial.print("Temperature: ");
-        Serial.println(temperature);
-    }
-    //char* mqttTopic2 =  "icy/temp";*/
+    //strncpy(mqttMessage, payload, 128); // copy the array, up to len limit max + 1
+
     if (strcmp(topic, "display/matrix") == 0)
     {
+        StaticJsonBuffer<200> jsonBuffer;
+        JsonObject &root = jsonBuffer.parseObject(payload);
+        if (!root.success())
+        {
+            Serial.println("parseObject() failed");
+            return;
+        }
+          if (root.containsKey("brightness")) Matrix.brightness = root["brightness"];
+         Serial.println("brightness:  " + String(Matrix.brightness));
+          if (root.containsKey("message")) strncpy(Matrix.mqttMessage, root["message"], 128);
+          Serial.println("message:  " + String(Matrix.mqttMessage));
 
-        strncpy(weatherSummary, mqttMessage, 128);
-
-        Serial.print("Message: ");
-        Serial.println(weatherSummary);
     }
+      //  strncpy(temperature, root["temperature"], 6);
+
+
+
+      //  strncpy(weatherSummary, mqttMessage, 128);
+
+      //  Serial.print("Message: ");
+      //  Serial.println(weatherSummary);
+    
 }
 
 void onMqttPublish(uint16_t packetId)
