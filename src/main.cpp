@@ -19,8 +19,8 @@
 #include <Ticker.h>
 #include <mqtt.h>
 
-
 Ticker scrollText;
+Ticker flashDot;
 
 extern struct matrix Matrix;
 
@@ -47,45 +47,59 @@ MD_Parola P = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
 const char *ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = 7200;
 const int daylightOffset_sec = 0;
+static char tijd[7];
+static bool flasher = false;
 
-void scroll(){
- // P.setIntensity(Matrix.brightness);
-  if (P.getZoneStatus(ZONE_LOWER)) { //wait untill animation is done
-  //P.displayZoneText(ZONE_LOWER, weatherSummary, PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
-  P.displayZoneText(ZONE_LOWER, Matrix.mqttMessage, PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
+void scroll()
+{
+  if (P.getZoneStatus(ZONE_LOWER))
+  {
+    P.setIntensity(ZONE_LOWER, Matrix.brightness);
+    P.displayZoneText(ZONE_LOWER, Matrix.mqttMessage, PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
   }
+}
+
+void flashing()
+{
+  time_t now;
+  struct tm *timeinfo;
+  time(&now);
+
+  timeinfo = gmtime(&now);
+
+  int h, m;
+  h = timeinfo->tm_hour;
+  m = timeinfo->tm_min;
+
+  sprintf(tijd, "%02d%c%02d", h, (flasher ? ':' : '|'), m);
+
+  if (P.getZoneStatus(ZONE_UPPER))
+  { //wait untill animation is done
+    P.setIntensity(ZONE_UPPER, 0);
+    P.displayZoneText(ZONE_UPPER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+  }
+
+  flasher = !flasher;
 }
 
 void setup()
 {
-  //StaticJsonBuffer<200> jsonBuffer;
-
   Serial.begin(115200);
   Serial.println("\n Starting");
   WiFiManager wifiManager;
 
-  
-  //P.begin();
   P.begin(MAX_ZONES);
   // Set up zones for 2 halves of the display
   P.setZone(ZONE_LOWER, 0, ZONE_SIZE - 1);
-  P.setZone(ZONE_UPPER, ZONE_SIZE, MAX_DEVICES-1);
+  P.setZone(ZONE_UPPER, ZONE_SIZE, MAX_DEVICES - 1);
   P.setZoneEffect(ZONE_UPPER, true, PA_FLIP_UD);
   P.setZoneEffect(ZONE_UPPER, true, PA_FLIP_LR);
 
-  P.setIntensity(ZONE_UPPER, 0);
-  P.setIntensity(ZONE_LOWER, Matrix.brightness);
-  //P.print("> WIFI");
- 
-  //P.displayText(tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
   wifiManager.setConnectTimeout(15);
   wifiManager.autoConnect("AutoConnectAP");
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 
   mqttSetup();
-  // Port defaults to 8266
-  //ArduinoOTA.setPort(8266);
-  // Hostname defaults to esp8266-[ChipID]
   ArduinoOTA.setHostname("ESP8266_MATRIX");
   // No authentication by default
   //ArduinoOTA.setPassword((const char *)"xxxxx");
@@ -101,13 +115,13 @@ void setup()
     Serial.printf("Progress: %u%%\r\n", (progress / (total / 100)));
 
     //P.print("-OTA-");
-   // P.setTextAlignment(PA_LEFT);
-   // P.print("> " + String(progress / (total / 100)) + "%");
-   static char ota[7];
-   sprintf(ota, "%s%3d%s", "> ",(progress / (total / 100)), "%");
-   P.displayZoneText(ZONE_UPPER, "OTA", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
-   P.displayZoneText(ZONE_LOWER, ota, PA_LEFT, 0, 0, PA_PRINT, PA_NO_EFFECT);
-  
+    // P.setTextAlignment(PA_LEFT);
+    // P.print("> " + String(progress / (total / 100)) + "%");
+    static char ota[7];
+    sprintf(ota, "%s%3d%s", "> ", (progress / (total / 100)), "%");
+    P.displayZoneText(ZONE_UPPER, "OTA", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+    P.displayZoneText(ZONE_LOWER, ota, PA_LEFT, 0, 0, PA_PRINT, PA_NO_EFFECT);
+
     P.displayAnimate();
   });
   ArduinoOTA.onError([](ota_error_t error) {
@@ -129,67 +143,11 @@ void setup()
   Serial.println(WiFi.localIP());
 
   scrollText.attach(10, scroll);
-  
-
+  flashDot.attach(1, flashing);
 }
 
 void loop()
 {
-  static uint32_t lastTime = 0; // millis() memory
-  static bool flasher = false;  // seconds passing flasher
-  static char tijd[7];
-
-  time_t now;
-  struct tm *timeinfo;
-  time(&now);
-
-  timeinfo = gmtime(&now);
-
   ArduinoOTA.handle();
-
-   P.setIntensity(Matrix.brightness);
- //(root.containsKey("brightness")) brightness = root["brightness"];
- // if (root.containsKey("brightness")) P.setIntensity(root["brightness"]);
- // if (root.containsKey("message")) strncpy(mqttMessage, root["message"], 128);
-
   P.displayAnimate();
-
-  if (millis() - lastTime >= 1000)
-  {
-    int h, m;
-    h = timeinfo->tm_hour;
-    m = timeinfo->tm_min;
-
-    sprintf(tijd, "%02d%c%02d", h, (flasher ? ':' : '|'), m);
-    lastTime = millis();
-    flasher = !flasher;
-
-    //P.print(tijd);
-    //P.displayReset();
-    //P.setIntensity(3);
-    //P.displayText(tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
-    P.displayZoneText(ZONE_UPPER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
-
-    
-     
-    
-
-    /*P.displayZoneText(ZONE_LOWER, msgL[idxMsg], ALIGN_LOWER,
-                       P.getSpeed(), ci.fPause ? PAUSE_TIME : 0,
-                      ci.zFX[ZONE_LOWER], ci.zFX[ZONE_LOWER]);
-    P.displayZoneText(ZONE_UPPER, msgH, ALIGN_UPPER,
-                      P.getSpeed(), ci.fPause ? PAUSE_TIME : 0,
-                      ci.zFX[ZONE_UPPER], ci.zFX[ZONE_UPPER]);
-                      */
-   // P.displayZoneText(ZONE_LOWER, tijd, ALIGN_LOWER, 0,0,PA_PRINT, PA_NO_EFFECT);  
-   // P.displayZoneText(ZONE_UPPER, "test", ALIGN_UPPER, 0,0,PA_PRINT, PA_NO_EFFECT);                  
-   // P.synchZoneStart();
-    
-   // MP.drawLine(6,0,6,16,1);
-   // MP.update(true);
-    Serial.println(tijd);
-
-    //configTime(gmtOffset_sec, daylightOffset_sec, ntpServer); //only once a minute?
-  }
-
 }
