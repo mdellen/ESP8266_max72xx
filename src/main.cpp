@@ -54,8 +54,22 @@ void scroll()
 {
   if (P.getZoneStatus(ZONE_LOWER))
   {
-    P.setIntensity(ZONE_LOWER, Matrix.brightness);
-    P.displayZoneText(ZONE_LOWER, Matrix.mqttMessage, PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
+    P.setIntensity(Matrix.zone, Matrix.brightness);
+    P.displayZoneText(ZONE_LOWER, Matrix.message, PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
+    //P.displayZoneText(Matrix.zone, Matrix.message, PA_LEFT, Matrix.speed, Matrix.pause, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
+    P.setTextBuffer(Matrix.zone, Matrix.message);
+   // P.setTextEffect(ZONE_UPPER, PA_SCROLL_DOWN, PA_SCROLL_UP);
+   // P.setTextEffect(ZONE_LOWER, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
+   // P.setSpeed(Matrix.speed);
+   // P.setPause(Matrix.pause);
+
+    //P.setTextEffect(Matrix.zone, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
+
+  
+  //  P.setTextEffect(ZONE_LOWER, Matrix.effectIn, PA_SCROLL_LEFT);
+  
+   // P.setTextAlignment(ZONE_LOWER, PA_CENTER);
+    
   }
 }
 
@@ -77,6 +91,7 @@ void flashing()
   { //wait untill animation is done
     P.setIntensity(ZONE_UPPER, 0);
     P.displayZoneText(ZONE_UPPER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+    //P.setTextBuffer(Matrix.zone, Matrix.message);
   }
 
   flasher = !flasher;
@@ -94,6 +109,7 @@ void setup()
   P.setZone(ZONE_UPPER, ZONE_SIZE, MAX_DEVICES - 1);
   P.setZoneEffect(ZONE_UPPER, true, PA_FLIP_UD);
   P.setZoneEffect(ZONE_UPPER, true, PA_FLIP_LR);
+
 
   wifiManager.setConnectTimeout(15);
   wifiManager.autoConnect("AutoConnectAP");
