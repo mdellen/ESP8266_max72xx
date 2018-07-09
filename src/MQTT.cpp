@@ -114,7 +114,6 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
     
         if (root.containsKey("zone"))       Matrix.zone = root["zone"];      
         if (root.containsKey("message"))    strncpy(Matrix.message, root["message"], 200);   
-      //  if (root.containsKey("align"))      strcpy(Matrix.align, root["align"]); 
         if (root.containsKey("align"))      {
             if (root["align"] =      "LEFT")      Matrix.align = PA_LEFT; 
             else if (root["align"] = "CENTER")    Matrix.align = PA_CENTER; 
@@ -124,14 +123,9 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
         if (root.containsKey("pause"))      Matrix.pause = root["pause"]; 
         if (root.containsKey("effectIn"))   Matrix.effectIn = root["effectIn"];   
         if (root.containsKey("effectOut"))  Matrix.effectOut = root["effectOut"]; 
-        if (root.containsKey("brightness")) Matrix.brightness = root["brightness"];    
+        if (root.containsKey("brightness")) Matrix.brightness = root["brightness"];  
+        if (root.containsKey("UTC"))        Matrix.UTC = root["UTC"];  
 
-/*
-        if (root.containsKey("brightness")) Matrix.brightness = root["brightness"];
-        //Serial.println("brightness:  " + String(Matrix.brightness));
-        if (root.containsKey("message")) strncpy(Matrix.mqttMessage, root["message"], 128);
-        //Serial.println("message:  " + String(Matrix.mqttMessage));
-*/
     }
     
 }

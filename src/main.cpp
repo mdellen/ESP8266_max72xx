@@ -14,6 +14,7 @@
 #include <MD_MAX72xx.h>
 #include <MD_Parola.h>
 #include "Font_Data.h"
+#include "Font_Clock.h"
 
 #include <WiFiManager.h>
 #include <SPI.h>
@@ -45,12 +46,14 @@ extern struct matrix Matrix;
 
 #define SCROLL_LEFT 1
 #if SCROLL_LEFT // invert and scroll left
-#define SCROLL_UPPER  PA_SCROLL_RIGHT
-#define SCROLL_LOWER  PA_SCROLL_LEFT
-#else           // invert and scroll right
-#define SCROLL_UPPER  PA_SCROLL_LEFT
-#define SCROLL_LOWER  PA_SCROLL_RIGHT
+#define SCROLL_UPPER PA_SCROLL_RIGHT
+#define SCROLL_LOWER PA_SCROLL_LEFT
+#else // invert and scroll right
+#define SCROLL_UPPER PA_SCROLL_LEFT
+#define SCROLL_LOWER PA_SCROLL_RIGHT
 #endif
+#define PAUSE_TIME 0
+#define SCROLL_SPEED 30
 
 MD_Parola P = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
 // Create the graphics library object, passing through the Parola MD_MAX72XX graphic object
@@ -60,31 +63,31 @@ const long gmtOffset_sec = 7200;
 const int daylightOffset_sec = 0;
 static char tijd[7];
 static bool flasher = false;
+static bool sync = false;
 
+uint8_t degC[] = {6, 3, 3, 56, 68, 68, 68}; // Deg C
 
 void scroll()
 {
-  if (P.getZoneStatus(ZONE_LOWER) && P.getZoneStatus(ZONE_UPPER))
+  time_t now;
+  if (P.getZoneStatus(ZONE_LOWER) && P.getZoneStatus(ZONE_UPPER) && sync)
   {
     /*P.setIntensity(Matrix.zone, Matrix.brightness);
     P.displayZoneText(Matrix.zone, Matrix.message, PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
     P.setTextBuffer(Matrix.zone, Matrix.message);
     P.setTextAlignment(Matrix.zone, Matrix.align);
     P.setSpeed(Matrix.zone, Matrix.speed);
-*/
-P.setIntensity(Matrix.brightness);
-P.setCharSpacing(5); // double height --> double spacing
-P.setFont(ZONE_UPPER, BigFontUpper);
-P.setFont(ZONE_LOWER, BigFontLower);
-
-
-#define PAUSE_TIME 0
-#define SCROLL_SPEED 30
+*/   
     P.displayClear();
+    P.setIntensity(Matrix.brightness);
+    P.setCharSpacing(5); // double height --> double spacing
+    P.setFont(NULL);
+    P.setFont(ZONE_UPPER, BigFontUpper);
+    P.setFont(ZONE_LOWER, BigFontLower);
     P.displayZoneText(ZONE_UPPER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_UPPER, SCROLL_UPPER);
     P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
     P.synchZoneStart();
-
+    sync = false;
     //P.setFont(NULL);
   }
 }
@@ -101,18 +104,36 @@ void flashing()
   h = timeinfo->tm_hour;
   m = timeinfo->tm_min;
 
-  sprintf(tijd, "%02d%c%02d", h, (flasher ? ':' : '|'), m);
+  //sprintf(tijd, "%02d%c%02d", h, (flasher ? ':' : '|'), m);
+  sprintf(tijd, "%02d%c%02d", h, (flasher ? ':' : ' '), m);
 
   if (P.getZoneStatus(ZONE_UPPER))
   { //wait untill animation is done
     P.setIntensity(ZONE_UPPER, 0);
-    P.setFont(NULL);
+
+   // if ( now > Matrix.UTC) P.setIntensity(15);
+   // else P.setIntensity(0);
+ //   Serial.println("local: ");
+ //   Serial.println(now);
+ //   Serial.println("MQTT:  ");
+ //   Serial.println(Matrix.UTC);
+
+  //  if (now >= Matrix.UTC) Serial.println("PAST");
+  //  else Serial.println("FUTURE");
+
+    P.setFont(1, numeric7Seg);
+    //P.setFont(NULL);
     P.setCharSpacing(2);
     P.displayZoneText(ZONE_UPPER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+    P.addChar('$', degC);
+
+ 
+    
+
     //P.setTextBuffer(Matrix.zone, Matrix.message);
   }
-
   flasher = !flasher;
+  if (sync) flasher = sync;
 }
 
 void setup()
@@ -127,7 +148,7 @@ void setup()
   P.setZone(ZONE_UPPER, ZONE_SIZE, MAX_DEVICES - 1);
   P.setZoneEffect(ZONE_UPPER, true, PA_FLIP_UD);
   P.setZoneEffect(ZONE_UPPER, true, PA_FLIP_LR);
-  
+
   //WELCOME ANIMATION
   P.displayZoneText(ZONE_UPPER, "|", PA_LEFT, 30, 100, PA_SCROLL_LEFT, PA_SCROLL_RIGHT);
   P.displayZoneText(ZONE_LOWER, "|", PA_LEFT, 30, 100, PA_SCROLL_LEFT, PA_SCROLL_RIGHT);
@@ -156,7 +177,10 @@ void setup()
     // P.setTextAlignment(PA_LEFT);
     // P.print("> " + String(progress / (total / 100)) + "%");
     static char ota[7];
-    sprintf(ota, "%s%3d%s", "> ", (progress / (total / 100)), "%");
+    sprintf(ota, "%s%3d%s", ">", (progress / (total / 100)), "%");
+ 
+    P.setFont(NULL);
+    P.setCharSpacing(2);
     P.displayZoneText(ZONE_UPPER, "OTA", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
     P.displayZoneText(ZONE_LOWER, ota, PA_LEFT, 0, 0, PA_PRINT, PA_NO_EFFECT);
 
@@ -179,8 +203,6 @@ void setup()
   Serial.println("Ready");
   Serial.print("IP address: ");
 
-
-
   scrollText.attach(10, scroll);
   flashDot.attach(1, flashing);
 }
@@ -189,4 +211,18 @@ void loop()
 {
   ArduinoOTA.handle();
   P.displayAnimate();
+
+  time_t now;
+  struct tm *timeinfo;
+  time(&now);
+  timeinfo = gmtime(&now);
+  if (now == Matrix.UTC) {
+    scrollText.detach();
+    flashDot.detach();
+    delay(100);
+    sync = true;
+    scrollText.attach(10, scroll);
+    flashDot.attach(1, flashing);
+    
+  }
 }

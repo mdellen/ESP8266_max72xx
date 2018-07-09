@@ -35,6 +35,7 @@ struct matrix
     int     effectIn;
     int     effectOut;
     int     brightness;
+    int     UTC;
 };
 
 void scroll();
