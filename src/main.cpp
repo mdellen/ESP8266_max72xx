@@ -13,6 +13,8 @@
 #include <ArduinoOTA.h>
 #include <MD_MAX72xx.h>
 #include <MD_Parola.h>
+#include "Font_Data.h"
+
 #include <WiFiManager.h>
 #include <SPI.h>
 #include <time.h>
@@ -41,6 +43,15 @@ extern struct matrix Matrix;
 #define ALIGN_LOWER PA_CENTER
 #define ALIGN_UPPER ALIGN_LOWER
 
+#define SCROLL_LEFT 1
+#if SCROLL_LEFT // invert and scroll left
+#define SCROLL_UPPER  PA_SCROLL_RIGHT
+#define SCROLL_LOWER  PA_SCROLL_LEFT
+#else           // invert and scroll right
+#define SCROLL_UPPER  PA_SCROLL_LEFT
+#define SCROLL_LOWER  PA_SCROLL_RIGHT
+#endif
+
 MD_Parola P = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
 // Create the graphics library object, passing through the Parola MD_MAX72XX graphic object
 //MD_MAXPanel MP = MD_MAXPanel(P.getGraphicObject(), MAX_DEVICES, 1);
@@ -50,26 +61,31 @@ const int daylightOffset_sec = 0;
 static char tijd[7];
 static bool flasher = false;
 
+
 void scroll()
 {
-  if (P.getZoneStatus(ZONE_LOWER))
+  if (P.getZoneStatus(ZONE_LOWER) && P.getZoneStatus(ZONE_UPPER))
   {
-    P.setIntensity(Matrix.zone, Matrix.brightness);
-    P.displayZoneText(ZONE_LOWER, Matrix.message, PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
-    //P.displayZoneText(Matrix.zone, Matrix.message, PA_LEFT, Matrix.speed, Matrix.pause, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
+    /*P.setIntensity(Matrix.zone, Matrix.brightness);
+    P.displayZoneText(Matrix.zone, Matrix.message, PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
     P.setTextBuffer(Matrix.zone, Matrix.message);
-   // P.setTextEffect(ZONE_UPPER, PA_SCROLL_DOWN, PA_SCROLL_UP);
-   // P.setTextEffect(ZONE_LOWER, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
-   // P.setSpeed(Matrix.speed);
-   // P.setPause(Matrix.pause);
+    P.setTextAlignment(Matrix.zone, Matrix.align);
+    P.setSpeed(Matrix.zone, Matrix.speed);
+*/
+P.setIntensity(Matrix.brightness);
+P.setCharSpacing(5); // double height --> double spacing
+P.setFont(ZONE_UPPER, BigFontUpper);
+P.setFont(ZONE_LOWER, BigFontLower);
 
-    //P.setTextEffect(Matrix.zone, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
 
-  
-  //  P.setTextEffect(ZONE_LOWER, Matrix.effectIn, PA_SCROLL_LEFT);
-  
-   // P.setTextAlignment(ZONE_LOWER, PA_CENTER);
-    
+#define PAUSE_TIME 0
+#define SCROLL_SPEED 30
+    P.displayClear();
+    P.displayZoneText(ZONE_UPPER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_UPPER, SCROLL_UPPER);
+    P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
+    P.synchZoneStart();
+
+    //P.setFont(NULL);
   }
 }
 
@@ -90,6 +106,8 @@ void flashing()
   if (P.getZoneStatus(ZONE_UPPER))
   { //wait untill animation is done
     P.setIntensity(ZONE_UPPER, 0);
+    P.setFont(NULL);
+    P.setCharSpacing(2);
     P.displayZoneText(ZONE_UPPER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
     //P.setTextBuffer(Matrix.zone, Matrix.message);
   }
@@ -109,14 +127,18 @@ void setup()
   P.setZone(ZONE_UPPER, ZONE_SIZE, MAX_DEVICES - 1);
   P.setZoneEffect(ZONE_UPPER, true, PA_FLIP_UD);
   P.setZoneEffect(ZONE_UPPER, true, PA_FLIP_LR);
-
+  
+  //WELCOME ANIMATION
+  P.displayZoneText(ZONE_UPPER, "|", PA_LEFT, 30, 100, PA_SCROLL_LEFT, PA_SCROLL_RIGHT);
+  P.displayZoneText(ZONE_LOWER, "|", PA_LEFT, 30, 100, PA_SCROLL_LEFT, PA_SCROLL_RIGHT);
+  P.displayAnimate();
 
   wifiManager.setConnectTimeout(15);
   wifiManager.autoConnect("AutoConnectAP");
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 
   mqttSetup();
-  ArduinoOTA.setHostname("ESP8266_MATRIX");
+  //ArduinoOTA.setHostname("ESP8266_MATRIX");
   // No authentication by default
   //ArduinoOTA.setPassword((const char *)"xxxxx");
 
@@ -156,7 +178,8 @@ void setup()
   ArduinoOTA.begin();
   Serial.println("Ready");
   Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
+
+
 
   scrollText.attach(10, scroll);
   flashDot.attach(1, flashing);

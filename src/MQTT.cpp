@@ -114,7 +114,12 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
     
         if (root.containsKey("zone"))       Matrix.zone = root["zone"];      
         if (root.containsKey("message"))    strncpy(Matrix.message, root["message"], 200);   
-        if (root.containsKey("align"))      strcpy(Matrix.align, root["align"]); 
+      //  if (root.containsKey("align"))      strcpy(Matrix.align, root["align"]); 
+        if (root.containsKey("align"))      {
+            if (root["align"] =      "LEFT")      Matrix.align = PA_LEFT; 
+            else if (root["align"] = "CENTER")    Matrix.align = PA_CENTER; 
+            else if (root["align"] = "RIGHT")     Matrix.align = PA_RIGHT; 
+        }
         if (root.containsKey("speed"))      Matrix.speed = root["speed"]; 
         if (root.containsKey("pause"))      Matrix.pause = root["pause"]; 
         if (root.containsKey("effectIn"))   Matrix.effectIn = root["effectIn"];   

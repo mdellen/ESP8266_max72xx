@@ -5,6 +5,7 @@
 #endif
 
 #include <ArduinoJson.h>
+#include <MD_Parola.h>
 
 #include <AsyncMqttClient.h>
 #define MQTT_HOST IPAddress(77,174,82,246) // www.mennovandellen.nl
@@ -28,7 +29,7 @@ struct matrix
 {
     int     zone;
     char    message[200];
-    char*   align;
+    textPosition_t   align;
     int     speed;
     int     pause;
     int     effectIn;
