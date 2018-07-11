@@ -4,14 +4,13 @@ Ticker mqttReconnectTimer;
 
 Ticker wifiReconnectTimer;
 
-//String mqttMessage = "No MQTT message...";
-
 char temperature[6];
 char weatherSummary[128];
-//char mqttMessage[128];
-//int brightness;
+
+
 
 matrix Matrix;
+
 
 void mqttSetup()
 {
@@ -125,7 +124,8 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
         if (root.containsKey("effectOut"))  Matrix.effectOut = root["effectOut"]; 
         if (root.containsKey("brightness")) Matrix.brightness = root["brightness"];  
         if (root.containsKey("UTC"))        Matrix.UTC = root["UTC"];  
-
+        if (root.containsKey("UTC"))        globalTime = root["UTC"];
+        globalTime = globalTime - millis();
     }
     
 }

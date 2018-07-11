@@ -23,6 +23,7 @@ extern char* mqttTemp[];
 extern char temperature[];
 extern char weatherSummary[];
 
+extern unsigned long globalTime;
 //z pText align speed pause effectIn effectOut
 //P.displayZoneText(ZONE_LOWER, ota, PA_LEFT, 0, 0, PA_PRINT, PA_NO_EFFECT);
 struct matrix
@@ -35,7 +36,7 @@ struct matrix
     int     effectIn;
     int     effectOut;
     int     brightness;
-    int     UTC;
+    unsigned long  UTC;
 };
 
 void scroll();

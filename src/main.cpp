@@ -26,6 +26,7 @@ Ticker scrollText;
 Ticker flashDot;
 
 extern struct matrix Matrix;
+extern unsigned long globalTime=0;
 
 // Define the number of devices we have in the chain and the hardware interface
 #define HARDWARE_TYPE MD_MAX72XX::FC16_HW
@@ -70,7 +71,7 @@ uint8_t degC[] = {6, 3, 3, 56, 68, 68, 68}; // Deg C
 void scroll()
 {
   time_t now;
-  if (P.getZoneStatus(ZONE_LOWER) && P.getZoneStatus(ZONE_UPPER) && sync)
+  if (P.getZoneStatus(ZONE_LOWER) && P.getZoneStatus(ZONE_UPPER) && (Matrix.message[0] != '\0'))
   {
     /*P.setIntensity(Matrix.zone, Matrix.brightness);
     P.displayZoneText(Matrix.zone, Matrix.message, PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
@@ -87,7 +88,7 @@ void scroll()
     P.displayZoneText(ZONE_UPPER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_UPPER, SCROLL_UPPER);
     P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
     P.synchZoneStart();
-    sync = false;
+
     //P.setFont(NULL);
   }
 }
@@ -106,6 +107,7 @@ void flashing()
 
   //sprintf(tijd, "%02d%c%02d", h, (flasher ? ':' : '|'), m);
   sprintf(tijd, "%02d%c%02d", h, (flasher ? ':' : ' '), m);
+ // sprintf(tijd, "%d", globalTime);
 
   if (P.getZoneStatus(ZONE_UPPER))
   { //wait untill animation is done
@@ -125,22 +127,31 @@ void flashing()
     //P.setFont(NULL);
     P.setCharSpacing(2);
     P.displayZoneText(ZONE_UPPER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+    
     P.addChar('$', degC);
 
- 
+     int offset = (globalTime+millis())%1000; // modulo seconds
+     Serial.println(globalTime+millis());
+     //Serial.println((globalTime+millis())%1000);
+     Serial.println(offset);
+   
+     
+     //scrollText.attach(10, scroll);
+     //flashDot.attach(1, flashing);
+
     
 
     //P.setTextBuffer(Matrix.zone, Matrix.message);
   }
   flasher = !flasher;
   if (sync) flasher = sync;
+  sync = false; 
 }
 
 void setup()
 {
   Serial.begin(115200);
   Serial.println("\n Starting");
-  WiFiManager wifiManager;
 
   P.begin(MAX_ZONES);
   // Set up zones for 2 halves of the display
@@ -149,16 +160,24 @@ void setup()
   P.setZoneEffect(ZONE_UPPER, true, PA_FLIP_UD);
   P.setZoneEffect(ZONE_UPPER, true, PA_FLIP_LR);
 
-  //WELCOME ANIMATION
-  P.displayZoneText(ZONE_UPPER, "|", PA_LEFT, 30, 100, PA_SCROLL_LEFT, PA_SCROLL_RIGHT);
-  P.displayZoneText(ZONE_LOWER, "|", PA_LEFT, 30, 100, PA_SCROLL_LEFT, PA_SCROLL_RIGHT);
+  P.displayZoneText(ZONE_UPPER, "Wi-Fi", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+  P.displayZoneText(ZONE_LOWER, ". . .", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
   P.displayAnimate();
 
+  WiFiManager wifiManager;
   wifiManager.setConnectTimeout(15);
   wifiManager.autoConnect("AutoConnectAP");
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-
   mqttSetup();
+
+  //WELCOME ANIMATION
+  P.displayZoneText(ZONE_UPPER, "", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+  P.displayZoneText(ZONE_LOWER, "", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+  P.displayAnimate();
+  P.displayZoneText(ZONE_UPPER, "|", PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_RIGHT);
+  P.displayZoneText(ZONE_LOWER, "|", PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_RIGHT);
+
+
   //ArduinoOTA.setHostname("ESP8266_MATRIX");
   // No authentication by default
   //ArduinoOTA.setPassword((const char *)"xxxxx");
@@ -203,26 +222,36 @@ void setup()
   Serial.println("Ready");
   Serial.print("IP address: ");
 
-  scrollText.attach(10, scroll);
-  flashDot.attach(1, flashing);
+  //scrollText.attach(10, scroll);
+ // flashDot.attach(1, flashing);
 }
 
 void loop()
 {
   ArduinoOTA.handle();
   P.displayAnimate();
+  if (((globalTime+millis())%1000) == 0) {
+    flashing();
+  }
+    if ((Matrix.UTC + 1000) == globalTime + millis()){  //SYNC after 1 second
+    //if ((Matrix.UTC + 1000 + SCROLL_SPEED*8*5 ) == globalTime + millis()){  //SYNC after 1 second
+      scroll();
+      sync = true;
+  }
 
-  time_t now;
+/*  time_t now;
   struct tm *timeinfo;
   time(&now);
   timeinfo = gmtime(&now);
-  if (now == Matrix.UTC) {
+  if ((now == Matrix.UTC) && !sync) {
+    */
+   /*if (globalTime == globalTime)
     scrollText.detach();
     flashDot.detach();
     delay(100);
     sync = true;
     scrollText.attach(10, scroll);
     flashDot.attach(1, flashing);
-    
-  }
+    *
+  }*/
 }
