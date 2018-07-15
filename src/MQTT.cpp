@@ -123,6 +123,7 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
         if (root.containsKey("effectIn"))   Matrix.effectIn = root["effectIn"];   
         if (root.containsKey("effectOut"))  Matrix.effectOut = root["effectOut"]; 
         if (root.containsKey("brightness")) Matrix.brightness = root["brightness"];  
+        if (root.containsKey("BigFont"))    Matrix.BigFont = root["BigFont"]; 
         if (root.containsKey("UTC"))        Matrix.UTC = root["UTC"];  
         if (root.containsKey("UTC"))        globalTime = root["UTC"];
         globalTime = globalTime - millis();

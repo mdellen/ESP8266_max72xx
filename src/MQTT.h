@@ -37,6 +37,7 @@ struct matrix
     int     effectOut;
     int     brightness;
     unsigned long  UTC;
+    bool    BigFont;
 };
 
 void scroll();

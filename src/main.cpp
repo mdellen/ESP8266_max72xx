@@ -53,6 +53,7 @@ extern unsigned long globalTime=0;
 #define SCROLL_UPPER PA_SCROLL_LEFT
 #define SCROLL_LOWER PA_SCROLL_RIGHT
 #endif
+#define SPEED_TIME  75
 #define PAUSE_TIME 0
 #define SCROLL_SPEED 30
 
@@ -66,28 +67,44 @@ static char tijd[7];
 static bool flasher = false;
 static bool sync = false;
 
+#define MAX_MESG  6
+char  szTimeL[MAX_MESG];    // mm:ss\0
+char  szTimeH[MAX_MESG];
+
+
 uint8_t degC[] = {6, 3, 3, 56, 68, 68, 68}; // Deg C
+
+void createHString(char *pH, char *pL)
+{
+  for (; *pL != '\0'; pL++)
+    *pH++ = *pL | 0x80;   // offset character
+
+  *pH = '\0'; // terminate the string
+}
 
 void scroll()
 {
   time_t now;
   if (P.getZoneStatus(ZONE_LOWER) && P.getZoneStatus(ZONE_UPPER) && (Matrix.message[0] != '\0'))
   {
-    /*P.setIntensity(Matrix.zone, Matrix.brightness);
-    P.displayZoneText(Matrix.zone, Matrix.message, PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
-    P.setTextBuffer(Matrix.zone, Matrix.message);
-    P.setTextAlignment(Matrix.zone, Matrix.align);
-    P.setSpeed(Matrix.zone, Matrix.speed);
-*/   
+    P.setFont(NULL);
+    
+
+    if (Matrix.BigFont){
     P.displayClear();
     P.setIntensity(Matrix.brightness);
     P.setCharSpacing(5); // double height --> double spacing
-    P.setFont(NULL);
     P.setFont(ZONE_UPPER, BigFontUpper);
     P.setFont(ZONE_LOWER, BigFontLower);
     P.displayZoneText(ZONE_UPPER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_UPPER, SCROLL_UPPER);
     P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
     P.synchZoneStart();
+    }
+    else {
+    P.setIntensity(0, Matrix.brightness);
+    P.setCharSpacing(0,1); // double height --> double spacing
+    P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
+    }
 
     //P.setFont(NULL);
   }
@@ -105,24 +122,12 @@ void flashing()
   h = timeinfo->tm_hour;
   m = timeinfo->tm_min;
 
-  //sprintf(tijd, "%02d%c%02d", h, (flasher ? ':' : '|'), m);
   sprintf(tijd, "%02d%c%02d", h, (flasher ? ':' : ' '), m);
- // sprintf(tijd, "%d", globalTime);
+
 
   if (P.getZoneStatus(ZONE_UPPER))
   { //wait untill animation is done
     P.setIntensity(ZONE_UPPER, 0);
-
-   // if ( now > Matrix.UTC) P.setIntensity(15);
-   // else P.setIntensity(0);
- //   Serial.println("local: ");
- //   Serial.println(now);
- //   Serial.println("MQTT:  ");
- //   Serial.println(Matrix.UTC);
-
-  //  if (now >= Matrix.UTC) Serial.println("PAST");
-  //  else Serial.println("FUTURE");
-
     P.setFont(1, numeric7Seg);
     //P.setFont(NULL);
     P.setCharSpacing(2);
@@ -132,16 +137,7 @@ void flashing()
 
      int offset = (globalTime+millis())%1000; // modulo seconds
      Serial.println(globalTime+millis());
-     //Serial.println((globalTime+millis())%1000);
      Serial.println(offset);
-   
-     
-     //scrollText.attach(10, scroll);
-     //flashDot.attach(1, flashing);
-
-    
-
-    //P.setTextBuffer(Matrix.zone, Matrix.message);
   }
   flasher = !flasher;
   if (sync) flasher = sync;
@@ -154,6 +150,7 @@ void setup()
   Serial.println("\n Starting");
 
   P.begin(MAX_ZONES);
+  Matrix.BigFont  = true;
   // Set up zones for 2 halves of the display
   P.setZone(ZONE_LOWER, 0, ZONE_SIZE - 1);
   P.setZone(ZONE_UPPER, ZONE_SIZE, MAX_DEVICES - 1);
