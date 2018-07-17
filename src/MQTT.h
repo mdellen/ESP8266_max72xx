@@ -38,6 +38,7 @@ struct matrix
     int     brightness;
     unsigned long  UTC;
     bool    BigFont;
+    bool    sync;
 };
 
 void scroll();

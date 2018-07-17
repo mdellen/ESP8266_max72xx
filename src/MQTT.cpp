@@ -1,14 +1,10 @@
 #include <MQTT.h>
 AsyncMqttClient mqttClient;
 Ticker mqttReconnectTimer;
+//Ticker wifiReconnectTimer;
 
-Ticker wifiReconnectTimer;
-
-char temperature[6];
-char weatherSummary[128];
-
-
-
+//char temperature[6];
+//char weatherSummary[128];
 matrix Matrix;
 
 
@@ -44,22 +40,14 @@ void mqttKeepAlive()
     if (!mqttClient.connected())
     {
         Serial.print("Disconnected from MQTT.");
-        //if
-        // (WiFi.isConnected())
-        // {
         mqttReconnectTimer.once(2, connectToMqtt);
-        // }
     }
 }
 
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason)
 {
     Serial.print("Disconnected from MQTT.");
-    //if
-    // (WiFi.isConnected())
-    //{
     mqttReconnectTimer.once(2, connectToMqtt);
-    //}
 }
 
 void onMqttSubscribe(uint16_t packetId, uint8_t qos)
@@ -83,8 +71,6 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
     Serial.println("Publish received.");
     Serial.print("  topic: ");
     Serial.println(topic);
-    //Serial.print("  payload: ");
-    //Serial.println(payload);
     Serial.print("  qos: ");
     Serial.println(properties.qos);
     Serial.print("  dup: ");
@@ -98,8 +84,6 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
     Serial.print("  total: ");
     Serial.println(total);
 
-    //strncpy(mqttMessage, payload, 128); // copy the array, up to len limit max + 1
-
     if (strcmp(topic, "display/matrix") == 0)
     {
         StaticJsonBuffer<200> jsonBuffer;
@@ -110,7 +94,6 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
             return;
         }
 
-    
         if (root.containsKey("zone"))       Matrix.zone = root["zone"];      
         if (root.containsKey("message"))    strncpy(Matrix.message, root["message"], 200);   
         if (root.containsKey("align"))      {
