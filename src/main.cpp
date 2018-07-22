@@ -26,7 +26,6 @@ Ticker scrollText;
 Ticker flashDot;
 
 extern struct matrix Matrix;
-extern unsigned long globalTime = 0;
 
 // Define the number of devices we have in the chain and the hardware interface
 #define HARDWARE_TYPE MD_MAX72XX::FC16_HW
@@ -60,7 +59,7 @@ extern unsigned long globalTime = 0;
 MD_Parola P = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
 // Create the graphics library object, passing through the Parola MD_MAX72XX graphic object
 //MD_MAXPanel MP = MD_MAXPanel(P.getGraphicObject(), MAX_DEVICES, 1);
-const char *ntpServer = "pool.ntp.org";
+const char *ntpServer = "nl.pool.ntp.org";
 const long gmtOffset_sec = 7200;
 const int daylightOffset_sec = 0;
 static char tijd[7];
@@ -131,15 +130,15 @@ void flashing()
     P.setCharSpacing(2);
     P.displayZoneText(ZONE_UPPER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
 
-    P.addChar('$', degC);
+    //P.addChar('$', degC);
 
-    int offset = (globalTime + millis()) % 1000; // modulo seconds
-    Serial.println(globalTime + millis());
-    Serial.println(offset);
+    //int offset = (globalTime + millis()) % 1000; // modulo seconds
+    //Serial.println(globalTime + millis());
+    //Serial.println(offset);
   }
   //flasher = !flasher;
   //if (sync) flasher = sync;
-  if (((globalTime + millis()) % 3) == 0)
+  if (((Matrix.UTC + Matrix.offset + millis()) % 3) == 0)
     flasher = true;
   else
     flasher = false;
@@ -228,14 +227,16 @@ void loop()
   ArduinoOTA.handle();
   P.displayAnimate();
 
-  if (((globalTime + millis()) % 1000) == 0)
+  if (((Matrix.UTC + Matrix.offset + millis()) % 1000) == 0)
   {
     flashing();
   }
 
-  if ((Matrix.UTC + 1000) == globalTime + millis())
+  //if ((Matrix.UTC + 1000) == (Matrix.UTC + offset + millis())
+  if (Matrix.newMessage)
   { //SYNC after 1 second
     scroll();
-    Matrix.sync = true;
+    Matrix.newMessage = false;
+    Matrix.sync = false;
   }
 }

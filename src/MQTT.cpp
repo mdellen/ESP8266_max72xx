@@ -6,7 +6,7 @@ Ticker mqttReconnectTimer;
 //char temperature[6];
 //char weatherSummary[128];
 matrix Matrix;
-
+char nodeID[22];
 
 void mqttSetup()
 {
@@ -19,12 +19,14 @@ void mqttSetup()
     mqttClient.setServer(MQTT_HOST, MQTT_PORT);
     mqttClient.setCredentials(MQTT_USER, MQTT_PW);
     connectToMqtt();
+    
 }
 
 void connectToMqtt()
 {
     Serial.println("Connecting to MQTT...");
     mqttClient.connect();
+    mqttReconnectTimer.attach(60, mqttKeepAlive);
 }
 
 void onMqttConnect(bool sessionPresent)
@@ -32,11 +34,17 @@ void onMqttConnect(bool sessionPresent)
     uint16_t packetIdSub1 = mqttClient.subscribe("display/matrix", 2);
     //uint16_t packetIdSub2 = mqttClient.subscribe("forecast/today", 2);
 
-    mqttClient.publish("display/matrix/connected", 0, true, "test123");
+    
+    //snprintf(nodeID, 16, "%s%02x", "display/matrix/", (long)ESP.getChipId());
+    snprintf(nodeID, 22, "%s%02x%s", "display/matrix/", (long)ESP.getChipId(), "/");
+    mqttClient.publish(nodeID, 0, true, "ONLINE");
+    mqttClient.setWill(nodeID, 0, true, "OFFLINE");
+    
 }
 
 void mqttKeepAlive()
 {
+    mqttClient.publish(nodeID, 0, true, "ONLINE");
     if (!mqttClient.connected())
     {
         Serial.print("Disconnected from MQTT.");
@@ -95,8 +103,13 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
         }
 
         if (root.containsKey("zone"))       Matrix.zone = root["zone"];      
-        if (root.containsKey("message"))    strncpy(Matrix.message, root["message"], 200);   
-        if (root.containsKey("align"))      {
+        if (root.containsKey("message"))    
+        {
+            strncpy(Matrix.message, root["message"], 200); 
+            Matrix.newMessage = true;
+        }
+        if (root.containsKey("align"))      
+        {
             if (root["align"] =      "LEFT")      Matrix.align = PA_LEFT; 
             else if (root["align"] = "CENTER")    Matrix.align = PA_CENTER; 
             else if (root["align"] = "RIGHT")     Matrix.align = PA_RIGHT; 
@@ -108,8 +121,11 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
         if (root.containsKey("brightness")) Matrix.brightness = root["brightness"];  
         if (root.containsKey("BigFont"))    Matrix.BigFont = root["BigFont"]; 
         if (root.containsKey("UTC"))        Matrix.UTC = root["UTC"];  
-        if (root.containsKey("UTC"))        globalTime = root["UTC"];
-        globalTime = globalTime - millis();
+        if (!Matrix.sync) {
+            Matrix.offset = -millis();
+            Matrix.sync = true;
+        }
+       
     }
     
 }
@@ -120,22 +136,3 @@ void onMqttPublish(uint16_t packetId)
     Serial.print("  packetId: ");
     Serial.println(packetId);
 }
-
-void connectToWifi()
-{
-    Serial.println("Connecting to Wi-Fi...");
-    //WiFi.begin();
-}
-
-/*
-void onWifiConnect(const WiFiEventStationModeGotIP& event) {
-  Serial.println("Connected to Wi-Fi.");
-  connectToMqtt();
-}
-
-void onWifiDisconnect(const WiFiEventStationModeDisconnected& event) {
-  Serial.println("Disconnected from Wi-Fi.");
-  mqttReconnectTimer.detach(); // ensure we don't reconnect to MQTT while reconnecting to Wi-Fi
-  wifiReconnectTimer.once(2, connectToWifi);
-}
-*/
