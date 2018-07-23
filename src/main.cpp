@@ -19,6 +19,7 @@
 #include <WiFiManager.h>
 #include <SPI.h>
 #include <time.h>
+#include <sys/time.h> // struct timeval
 #include <Ticker.h>
 #include <mqtt.h>
 
@@ -63,8 +64,15 @@ const char *ntpServer = "nl.pool.ntp.org";
 const long gmtOffset_sec = 7200;
 const int daylightOffset_sec = 0;
 static char tijd[7];
+static char tijdS[7];
 static char nodeID[5];
 static bool flasher = false;
+
+timeval cbtime;
+timeval tv;
+timespec tp;
+time_t now;
+uint32_t now_ms, now_us;
 
 #define MAX_MESG 6
 char szTimeL[MAX_MESG]; // mm:ss\0
@@ -82,11 +90,13 @@ void createHString(char *pH, char *pL)
 
 void scroll()
 {
-  time_t now;
-  if (P.getZoneStatus(ZONE_LOWER) && P.getZoneStatus(ZONE_UPPER) && (Matrix.message[0] != '\0'))
+  //time_t now;
+  //if (P.getZoneStatus(ZONE_LOWER) && P.getZoneStatus(ZONE_UPPER) && (Matrix.message[0] != '\0'))
+  if (Matrix.message[0] != '\0')
   {
-    if (ESP.getChipId() == 0xfcb9ef) delay(SCROLL_SPEED*32);
-    
+    if (ESP.getChipId() == 0xfcb9ef)
+      delay(SCROLL_SPEED * 32);
+
     P.setFont(NULL);
 
     if (Matrix.BigFont)
@@ -111,38 +121,44 @@ void scroll()
 
 void flashing()
 {
+  uint64_t currentTime_us = micros64();
+  tv.tv_sec = currentTime_us / 1000000ULL;
+  tv.tv_usec = currentTime_us % 1000000ULL;
+
   time_t now;
   struct tm *timeinfo;
   time(&now);
 
   timeinfo = gmtime(&now);
 
-  int h, m;
+  int h, m, s;
   h = timeinfo->tm_hour;
   m = timeinfo->tm_min;
+  s = timeinfo->tm_sec;
 
   sprintf(tijd, "%02d%c%02d", h, (flasher ? ':' : ' '), m);
+  //sprintf(tijd, "%02d%c%02d", hour(t), (flasher ? ':' : ' '), min(t));
 
-  if (P.getZoneStatus(ZONE_UPPER))
+  if (P.getZoneStatus(ZONE_UPPER) && P.getZoneStatus(ZONE_LOWER))
   { //wait untill animation is done
     P.setIntensity(ZONE_UPPER, 0);
     P.setFont(1, numeric7Seg);
     P.setCharSpacing(2);
     P.displayZoneText(ZONE_UPPER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
-
+    //sprintf(tijdS, "%02d %02d", s, tv.tv_usec);
+    sprintf(tijdS, "%02d", s);
+    P.setIntensity(ZONE_LOWER, 0);
+    P.setFont(0, numeric7Seg);
+    P.setCharSpacing(2);
+    P.displayZoneText(ZONE_LOWER, tijdS, PA_CENTER, 30, 0, PA_PRINT, PA_NO_EFFECT);
     //P.addChar('$', degC);
 
-    //int offset = (globalTime + millis()) % 1000; // modulo seconds
-    //Serial.println(globalTime + millis());
-    //Serial.println(offset);
+    //if (((Matrix.UTC + Matrix.offset + millis()) % 3) == 0)
+    if (s % 2 == 0)
+      flasher = true;
+    else
+      flasher = false;
   }
-  //flasher = !flasher;
-  //if (sync) flasher = sync;
-  if (((Matrix.UTC + Matrix.offset + millis()) % 3) == 0)
-    flasher = true;
-  else
-    flasher = false;
-
   //sync = false;
 }
 
@@ -227,8 +243,21 @@ void loop()
   ArduinoOTA.handle();
   P.displayAnimate();
 
-  if (((Matrix.UTC + Matrix.offset + millis()) % 1000) == 0)
+  /* if (((Matrix.UTC + Matrix.offset + millis()) % 1000) == 0)
   {
+    flashing();
+  }
+  */
+  gettimeofday(&tv, nullptr);
+  //clock_gettime(0, &tp);
+  //now = time(nullptr);
+  //now_ms = millis();
+  //now_us = micros();
+
+  static time_t lastv = 0;
+  if (lastv != tv.tv_sec)
+  {
+    lastv = tv.tv_sec;
     flashing();
   }
 

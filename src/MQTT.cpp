@@ -1,4 +1,11 @@
 #include <MQTT.h>
+
+#include "coredecls.h"  //tune_timeshift64
+#include <time.h>
+#include <sys/time.h>
+#include <sys/reent.h>
+#include "sntp.h"    
+
 AsyncMqttClient mqttClient;
 Ticker mqttReconnectTimer;
 //Ticker wifiReconnectTimer;
@@ -7,6 +14,8 @@ Ticker mqttReconnectTimer;
 //char weatherSummary[128];
 matrix Matrix;
 char nodeID[22];
+
+
 
 void mqttSetup()
 {
@@ -19,7 +28,6 @@ void mqttSetup()
     mqttClient.setServer(MQTT_HOST, MQTT_PORT);
     mqttClient.setCredentials(MQTT_USER, MQTT_PW);
     connectToMqtt();
-    
 }
 
 void connectToMqtt()
@@ -34,12 +42,10 @@ void onMqttConnect(bool sessionPresent)
     uint16_t packetIdSub1 = mqttClient.subscribe("display/matrix", 2);
     //uint16_t packetIdSub2 = mqttClient.subscribe("forecast/today", 2);
 
-    
     //snprintf(nodeID, 16, "%s%02x", "display/matrix/", (long)ESP.getChipId());
     snprintf(nodeID, 22, "%s%02x%s", "display/matrix/", (long)ESP.getChipId(), "/");
     mqttClient.publish(nodeID, 0, true, "ONLINE");
     mqttClient.setWill(nodeID, 0, true, "OFFLINE");
-    
 }
 
 void mqttKeepAlive()
@@ -102,32 +108,42 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
             return;
         }
 
-        if (root.containsKey("zone"))       Matrix.zone = root["zone"];      
-        if (root.containsKey("message"))    
+        if (root.containsKey("zone"))
+            Matrix.zone = root["zone"];
+        if (root.containsKey("message"))
         {
-            strncpy(Matrix.message, root["message"], 200); 
+            strncpy(Matrix.message, root["message"], 200);
             Matrix.newMessage = true;
         }
-        if (root.containsKey("align"))      
+        if (root.containsKey("align"))
         {
-            if (root["align"] =      "LEFT")      Matrix.align = PA_LEFT; 
-            else if (root["align"] = "CENTER")    Matrix.align = PA_CENTER; 
-            else if (root["align"] = "RIGHT")     Matrix.align = PA_RIGHT; 
+            if (root["align"] = "LEFT")
+                Matrix.align = PA_LEFT;
+            else if (root["align"] = "CENTER")
+                Matrix.align = PA_CENTER;
+            else if (root["align"] = "RIGHT")
+                Matrix.align = PA_RIGHT;
         }
-        if (root.containsKey("speed"))      Matrix.speed = root["speed"]; 
-        if (root.containsKey("pause"))      Matrix.pause = root["pause"]; 
-        if (root.containsKey("effectIn"))   Matrix.effectIn = root["effectIn"];   
-        if (root.containsKey("effectOut"))  Matrix.effectOut = root["effectOut"]; 
-        if (root.containsKey("brightness")) Matrix.brightness = root["brightness"];  
-        if (root.containsKey("BigFont"))    Matrix.BigFont = root["BigFont"]; 
-        if (root.containsKey("UTC"))        Matrix.UTC = root["UTC"];  
-        if (!Matrix.sync) {
-            Matrix.offset = -millis();
+        if (root.containsKey("speed"))
+            Matrix.speed = root["speed"];
+        if (root.containsKey("pause"))
+            Matrix.pause = root["pause"];
+        if (root.containsKey("effectIn"))
+            Matrix.effectIn = root["effectIn"];
+        if (root.containsKey("effectOut"))
+            Matrix.effectOut = root["effectOut"];
+        if (root.containsKey("brightness"))
+            Matrix.brightness = root["brightness"];
+        if (root.containsKey("BigFont"))
+            Matrix.BigFont = root["BigFont"];
+        if (root.containsKey("UTC"))
+        {
+            Matrix.UTC = root["UTC"];
+            tune_timeshift64(Matrix.UTC);
+            timeshift64_is_set = true;
             Matrix.sync = true;
         }
-       
     }
-    
 }
 
 void onMqttPublish(uint16_t packetId)

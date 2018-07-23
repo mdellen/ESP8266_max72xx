@@ -5,6 +5,7 @@
     },
     "files.associations": {
         "*.tcc": "cpp",
-        "streambuf": "cpp"
+        "streambuf": "cpp",
+        "time.h": "c"
     }
 }
