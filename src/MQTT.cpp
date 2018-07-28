@@ -8,14 +8,8 @@
 
 AsyncMqttClient mqttClient;
 Ticker mqttReconnectTimer;
-//Ticker wifiReconnectTimer;
-
-//char temperature[6];
-//char weatherSummary[128];
 matrix Matrix;
 char nodeID[22];
-
-
 
 void mqttSetup()
 {
@@ -40,9 +34,6 @@ void connectToMqtt()
 void onMqttConnect(bool sessionPresent)
 {
     uint16_t packetIdSub1 = mqttClient.subscribe("display/matrix", 2);
-    //uint16_t packetIdSub2 = mqttClient.subscribe("forecast/today", 2);
-
-    //snprintf(nodeID, 16, "%s%02x", "display/matrix/", (long)ESP.getChipId());
     snprintf(nodeID, 22, "%s%02x%s", "display/matrix/", (long)ESP.getChipId(), "/");
     mqttClient.publish(nodeID, 0, true, "ONLINE");
     mqttClient.setWill(nodeID, 0, true, "OFFLINE");

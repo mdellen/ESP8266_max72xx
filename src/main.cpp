@@ -79,6 +79,46 @@ char szTimeL[MAX_MESG]; // mm:ss\0
 char szTimeH[MAX_MESG];
 
 uint8_t degC[] = {6, 3, 3, 56, 68, 68, 68}; // Deg C
+//uint8_t dot[] = { 8, 1, 14, 112, 128, 128, 112, 14, 1 }; //sine
+// byte 0 is the number of column bytes (n) that form this character.
+// byte 1..n – one byte for each column of the character. 
+uint8_t dot[] = { 0x08, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80}; 
+
+const uint8_t F_PMAN1 = 6;
+const uint8_t W_PMAN1 = 8;
+uint8_t F_PMAN1a = 6;
+uint8_t W_PMAN1a = 8;
+
+static const uint8_t PROGMEM pacman1[F_PMAN1 * W_PMAN1] =  // gobbling pacman animation
+{
+  0x00, 0x81, 0xc3, 0xe7, 0xff, 0x7e, 0x7e, 0x3c,
+  0x00, 0x42, 0xe7, 0xe7, 0xff, 0xff, 0x7e, 0x3c,
+  0x24, 0x66, 0xe7, 0xff, 0xff, 0xff, 0x7e, 0x3c,
+  0x3c, 0x7e, 0xff, 0xff, 0xff, 0xff, 0x7e, 0x3c,
+  0x24, 0x66, 0xe7, 0xff, 0xff, 0xff, 0x7e, 0x3c,
+  0x00, 0x42, 0xe7, 0xe7, 0xff, 0xff, 0x7e, 0x3c,
+};
+const uint8_t F_PMAN2 = 6;
+const uint8_t W_PMAN2 = 18;
+uint8_t F_PMAN2a = 6;
+uint8_t W_PMAN2a = 18;
+static const uint8_t PROGMEM pacman2[F_PMAN2 * W_PMAN2] =  // ghost pursued by a pacman
+{
+  0x00, 0x81, 0xc3, 0xe7, 0xff, 0x7e, 0x7e, 0x3c, 0x00, 0x00, 0x00, 0xfe, 0x7b, 0xf3, 0x7f, 0xfb, 0x73, 0xfe,
+  0x00, 0x42, 0xe7, 0xe7, 0xff, 0xff, 0x7e, 0x3c, 0x00, 0x00, 0x00, 0xfe, 0x7b, 0xf3, 0x7f, 0xfb, 0x73, 0xfe,
+  0x24, 0x66, 0xe7, 0xff, 0xff, 0xff, 0x7e, 0x3c, 0x00, 0x00, 0x00, 0xfe, 0x7b, 0xf3, 0x7f, 0xfb, 0x73, 0xfe,
+  0x3c, 0x7e, 0xff, 0xff, 0xff, 0xff, 0x7e, 0x3c, 0x00, 0x00, 0x00, 0xfe, 0x7b, 0xf3, 0x7f, 0xfb, 0x73, 0xfe,
+  0x24, 0x66, 0xe7, 0xff, 0xff, 0xff, 0x7e, 0x3c, 0x00, 0x00, 0x00, 0xfe, 0x7b, 0xf3, 0x7f, 0xfb, 0x73, 0xfe,
+  0x00, 0x42, 0xe7, 0xe7, 0xff, 0xff, 0x7e, 0x3c, 0x00, 0x00, 0x00, 0xfe, 0x7b, 0xf3, 0x7f, 0xfb, 0x73, 0xfe,
+};
+// Sprite Definition
+const uint8_t F_ROCKET = 2;
+const uint8_t W_ROCKET = 11;
+static const uint8_t PROGMEM rocket[F_ROCKET * W_ROCKET] =  // rocket
+{
+  0x18, 0x24, 0x42, 0x81, 0x99, 0x18, 0x99, 0x18, 0xa5, 0x5a, 0x81,
+  0x18, 0x24, 0x42, 0x81, 0x18, 0x99, 0x18, 0x99, 0x24, 0x42, 0x99,
+};
 
 void createHString(char *pH, char *pL)
 {
@@ -90,7 +130,6 @@ void createHString(char *pH, char *pL)
 
 void scroll()
 {
-  //time_t now;
   //if (P.getZoneStatus(ZONE_LOWER) && P.getZoneStatus(ZONE_UPPER) && (Matrix.message[0] != '\0'))
   if (Matrix.message[0] != '\0')
   {
@@ -137,27 +176,44 @@ void flashing()
   s = timeinfo->tm_sec;
 
   sprintf(tijd, "%02d%c%02d", h, (flasher ? ':' : ' '), m);
-  //sprintf(tijd, "%02d%c%02d", hour(t), (flasher ? ':' : ' '), min(t));
 
-  if (P.getZoneStatus(ZONE_UPPER) && P.getZoneStatus(ZONE_LOWER))
+  if (P.getZoneStatus(ZONE_LOWER))
   { //wait untill animation is done
     P.setIntensity(ZONE_UPPER, 0);
     P.setFont(1, numeric7Seg);
-    P.setCharSpacing(2);
+    P.setCharSpacing(1, 2);
     P.displayZoneText(ZONE_UPPER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
-    //sprintf(tijdS, "%02d %02d", s, tv.tv_usec);
     sprintf(tijdS, "%02d", s);
     P.setIntensity(ZONE_LOWER, 0);
     P.setFont(0, numeric7Seg);
-    P.setCharSpacing(2);
-    P.displayZoneText(ZONE_LOWER, tijdS, PA_CENTER, 30, 0, PA_PRINT, PA_NO_EFFECT);
+    P.setCharSpacing(0,0);
+    //P.displayZoneText(ZONE_LOWER, tijdS, PA_CENTER, 30, 0, PA_PRINT, PA_NO_EFFECT);
+    /*if (s <= 5) 
+    P.displayZoneText(ZONE_LOWER, "$", PA_CENTER, 30, 0, PA_PRINT, PA_NO_EFFECT);
+    else if (s >= 5 && s <30) 
+    P.displayZoneText(ZONE_LOWER, "$$$", PA_CENTER, 30, 0, PA_PRINT, PA_NO_EFFECT);
+    else if (s >= 30 && s <45) 
+    P.displayZoneText(ZONE_LOWER, "$$$$$$", PA_CENTER, 30, 0, PA_PRINT, PA_NO_EFFECT);
+    else if (s >= 45 && s <60) 
+    P.displayZoneText(ZONE_LOWER, "$$$$$$$$$$$$", PA_CENTER, 30, 0, PA_PRINT, PA_NO_EFFECT);
+    else*/
+    //if (s % 2 == 0 )
+    //P.displayZoneText(ZONE_LOWER, "", PA_CENTER, 50, 0, PA_OPENING, PA_CLOSING);
+    //else
+    //P.displayZoneText(ZONE_LOWER, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$", PA_CENTER, 50, 0, PA_OPENING, PA_CLOSING);
+    if (s % 10 == 0) 
+        P.displayZoneText(ZONE_LOWER, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$", PA_LEFT, 40, 0, PA_OPENING, PA_CLOSING);
+   // P.displayZoneText(ZONE_LOWER, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$", PA_LEFT, 50, 0, PA_SPRITE, PA_SPRITE);
+
+    //P.setSpriteData(rocket, W_ROCKET, F_ROCKET, rocket, W_ROCKET, F_ROCKET);
+    //P.setSpriteData(ZONE_LOWER, pacman1, W_PMAN1, F_PMAN1, pacman1, W_PMAN1, F_PMAN1);
+    //P.setSpriteData(pacman1, W_PMAN1a, F_PMAN1a, pacman2, W_PMAN2a, F_PMAN2a);
+    //P.displayText(ZONE_LOWER, "$$$", PA_CENTER, 50, 1000, PA_SPRITE, PA_SPRITE);
+    
     //P.addChar('$', degC);
 
-    //if (((Matrix.UTC + Matrix.offset + millis()) % 3) == 0)
-    if (s % 2 == 0)
-      flasher = true;
-    else
-      flasher = false;
+    if (s % 2 == 0) flasher = true;
+    else            flasher = false;
   }
   //sync = false;
 }
@@ -169,7 +225,7 @@ void setup()
 
   P.begin(MAX_ZONES);
   Matrix.sync = false;
-  Matrix.BigFont = true;
+  Matrix.BigFont = false;
   // Set up zones for 2 halves of the display
   P.setZone(ZONE_LOWER, 0, ZONE_SIZE - 1);
   P.setZone(ZONE_UPPER, ZONE_SIZE, MAX_DEVICES - 1);
@@ -178,9 +234,9 @@ void setup()
 
   P.displayZoneText(ZONE_UPPER, "Wi-Fi", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
   P.displayZoneText(ZONE_LOWER, ". . .", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
-  //snprintf(nodeID, 5, "%02x", (long)ESP.getChipId());
-  //P.displayZoneText(ZONE_LOWER, nodeID, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
   P.displayAnimate();
+
+  P.addChar('$', dot);
 
   WiFiManager wifiManager;
   wifiManager.setConnectTimeout(15);
@@ -194,6 +250,7 @@ void setup()
   P.displayAnimate();
   P.displayZoneText(ZONE_UPPER, "|", PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_RIGHT);
   P.displayZoneText(ZONE_LOWER, "|", PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_RIGHT);
+
 
   //ArduinoOTA.setHostname("ESP8266_MATRIX");
   // No authentication by default
@@ -242,17 +299,7 @@ void loop()
 {
   ArduinoOTA.handle();
   P.displayAnimate();
-
-  /* if (((Matrix.UTC + Matrix.offset + millis()) % 1000) == 0)
-  {
-    flashing();
-  }
-  */
   gettimeofday(&tv, nullptr);
-  //clock_gettime(0, &tp);
-  //now = time(nullptr);
-  //now_ms = millis();
-  //now_us = micros();
 
   static time_t lastv = 0;
   if (lastv != tv.tv_sec)
@@ -261,9 +308,8 @@ void loop()
     flashing();
   }
 
-  //if ((Matrix.UTC + 1000) == (Matrix.UTC + offset + millis())
   if (Matrix.newMessage)
-  { //SYNC after 1 second
+  {
     scroll();
     Matrix.newMessage = false;
     Matrix.sync = false;

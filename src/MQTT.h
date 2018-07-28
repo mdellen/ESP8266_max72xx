@@ -44,7 +44,6 @@ struct matrix
 
 void scroll();
 
-
 void mqttSetup();
 void mqttKeepAlive();
 void connectToMqtt();
