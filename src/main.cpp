@@ -145,21 +145,18 @@ void flashing()
     P.setFont(1, numeric7Seg);
     P.setCharSpacing(1, 2);
     P.displayZoneText(ZONE_UPPER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
-    sprintf(tijdS, "%02d", s);
-    P.setIntensity(ZONE_LOWER, 0);
-    P.setFont(0, numeric7Seg);
-    P.setCharSpacing(0, 0);
-    if (s % 2 == 0)
-      flasher = true;
-    else
-      flasher = false;
+    if (s % 2 == 0) flasher = true;
+    else            flasher = false;
   }
-  
+
   if (P.getZoneStatus(ZONE_LOWER)) 
   {
-    { if (s % 10 == 0)
-    P.addChar('$', dot);
-    P.displayZoneText(ZONE_LOWER, "$$$$", PA_LEFT, 40, 0, PA_OPENING, PA_CLOSING);
+    if (s % 10 == 0)
+    {
+      P.addChar('$', dot);
+      P.setIntensity(ZONE_LOWER, 0);
+      P.setCharSpacing(0, 0);
+      P.displayZoneText(ZONE_LOWER, "$$$$", PA_LEFT, 40, 0, PA_OPENING, PA_CLOSING);
     }
   }
 
