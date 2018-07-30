@@ -34,8 +34,8 @@ void connectToMqtt()
 void onMqttConnect(bool sessionPresent)
 {
     uint16_t packetIdSub1 = mqttClient.subscribe("display/matrix", 2);
-    uint16_t packetIdSub2 = mqttClient.subscribe("display/matrix/sync", 0);
     snprintf(nodeID, 22, "%s%02x%s", "display/matrix/", (long)ESP.getChipId(), "/");
+    uint16_t packetIdSub2 = mqttClient.subscribe(nodeID, 0);
     mqttClient.publish(nodeID, 0, true, "ONLINE");
     mqttClient.setWill(nodeID, 0, true, "OFFLINE");
 }
@@ -90,7 +90,7 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
     Serial.print("  total: ");
     Serial.println(total);
 
-    if (strcmp(topic, "display/matrix") == 0 || strcmp(topic, "display/matrix/sync") == 0)
+    if (strcmp(topic, "display/matrix") == 0)
     {
         StaticJsonBuffer<200> jsonBuffer;
         JsonObject &root = jsonBuffer.parseObject(payload);
@@ -131,11 +131,33 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
         if (root.containsKey("UTC"))
         {
             Matrix.UTC = root["UTC"];
-            tune_timeshift64(Matrix.UTC);
+            //tune_timeshift64(Matrix.UTC); TEST WITH 0
+            tune_timeshift64(0);
             timeshift64_is_set = true;
             Matrix.sync = true;
         }
+        
     }
+    if (strcmp(topic, nodeID) == 0)
+    {
+        StaticJsonBuffer<200> jsonBuffer;
+        JsonObject &root = jsonBuffer.parseObject(payload);
+        if (!root.success())
+        {
+            Serial.println("parseObject() failed");
+            return;
+        }
+        if (root.containsKey("reset"))
+        {
+            Matrix.reset = root["reset"];
+            if (!Matrix.reset) {
+                   ESP.reset();
+                   delay(5000);
+            }
+        }
+    }
+
+
 }
 
 void onMqttPublish(uint16_t packetId)

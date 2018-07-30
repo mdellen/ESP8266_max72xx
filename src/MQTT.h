@@ -31,6 +31,7 @@ struct matrix
     bool    sync;
     unsigned long offset;
     bool    newMessage;
+    bool    reset;
 };
 
 void scroll();

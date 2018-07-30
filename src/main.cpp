@@ -25,8 +25,8 @@
 #include <Ticker.h>
 #include <mqtt.h>
 
-Ticker scrollText;
-Ticker flashDot;
+Ticker resetTimer;
+WiFiManager wifiManager;
 
 extern struct matrix Matrix;
 
@@ -67,7 +67,6 @@ const long gmtOffset_sec = 7200;
 const int daylightOffset_sec = 0;
 static char tijd[7];
 static char tijdS[7];
-static char nodeID[5];
 static bool flasher = false;
 
 timeval cbtime;
@@ -93,6 +92,11 @@ void createHString(char *pH, char *pL)
   *pH = '\0'; // terminate the string
 }
 
+void resetNode()
+{
+   ESP.reset();
+   delay(5000);
+}
 void scroll()
 {
   //if (P.getZoneStatus(ZONE_LOWER) && P.getZoneStatus(ZONE_UPPER) && (Matrix.message[0] != '\0'))
@@ -187,7 +191,7 @@ void setup()
   P.displayZoneText(ZONE_LOWER, ". . .", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
   P.displayAnimate();
 
-  WiFiManager wifiManager;
+  
   wifiManager.setConnectTimeout(15);
   wifiManager.autoConnect("AutoConnectAP");
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
@@ -261,4 +265,14 @@ void loop()
     Matrix.newMessage = false;
     Matrix.sync = false;
   }
+
+  if (Matrix.reset) {
+    resetTimer.attach(5, resetNode);
+    strcpy(Matrix.message, "RESET");
+    Matrix.newMessage = true;
+    Matrix.BigFont = true;
+    wifiManager.resetSettings();
+    Matrix.reset = false;
+  }
+
 }
