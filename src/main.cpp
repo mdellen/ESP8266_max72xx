@@ -5,7 +5,6 @@
 // DIN        D7     HSPID or HMOSI
 // CS or LD   D8     HSPICS or HCS
 // CLK        D5     CLK or HCLK
-//
 
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
@@ -79,46 +78,9 @@ char szTimeL[MAX_MESG]; // mm:ss\0
 char szTimeH[MAX_MESG];
 
 uint8_t degC[] = {6, 3, 3, 56, 68, 68, 68}; // Deg C
-//uint8_t dot[] = { 8, 1, 14, 112, 128, 128, 112, 14, 1 }; //sine
 // byte 0 is the number of column bytes (n) that form this character.
-// byte 1..n – one byte for each column of the character. 
-uint8_t dot[] = { 0x08, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80}; 
-
-const uint8_t F_PMAN1 = 6;
-const uint8_t W_PMAN1 = 8;
-uint8_t F_PMAN1a = 6;
-uint8_t W_PMAN1a = 8;
-
-static const uint8_t PROGMEM pacman1[F_PMAN1 * W_PMAN1] =  // gobbling pacman animation
-{
-  0x00, 0x81, 0xc3, 0xe7, 0xff, 0x7e, 0x7e, 0x3c,
-  0x00, 0x42, 0xe7, 0xe7, 0xff, 0xff, 0x7e, 0x3c,
-  0x24, 0x66, 0xe7, 0xff, 0xff, 0xff, 0x7e, 0x3c,
-  0x3c, 0x7e, 0xff, 0xff, 0xff, 0xff, 0x7e, 0x3c,
-  0x24, 0x66, 0xe7, 0xff, 0xff, 0xff, 0x7e, 0x3c,
-  0x00, 0x42, 0xe7, 0xe7, 0xff, 0xff, 0x7e, 0x3c,
-};
-const uint8_t F_PMAN2 = 6;
-const uint8_t W_PMAN2 = 18;
-uint8_t F_PMAN2a = 6;
-uint8_t W_PMAN2a = 18;
-static const uint8_t PROGMEM pacman2[F_PMAN2 * W_PMAN2] =  // ghost pursued by a pacman
-{
-  0x00, 0x81, 0xc3, 0xe7, 0xff, 0x7e, 0x7e, 0x3c, 0x00, 0x00, 0x00, 0xfe, 0x7b, 0xf3, 0x7f, 0xfb, 0x73, 0xfe,
-  0x00, 0x42, 0xe7, 0xe7, 0xff, 0xff, 0x7e, 0x3c, 0x00, 0x00, 0x00, 0xfe, 0x7b, 0xf3, 0x7f, 0xfb, 0x73, 0xfe,
-  0x24, 0x66, 0xe7, 0xff, 0xff, 0xff, 0x7e, 0x3c, 0x00, 0x00, 0x00, 0xfe, 0x7b, 0xf3, 0x7f, 0xfb, 0x73, 0xfe,
-  0x3c, 0x7e, 0xff, 0xff, 0xff, 0xff, 0x7e, 0x3c, 0x00, 0x00, 0x00, 0xfe, 0x7b, 0xf3, 0x7f, 0xfb, 0x73, 0xfe,
-  0x24, 0x66, 0xe7, 0xff, 0xff, 0xff, 0x7e, 0x3c, 0x00, 0x00, 0x00, 0xfe, 0x7b, 0xf3, 0x7f, 0xfb, 0x73, 0xfe,
-  0x00, 0x42, 0xe7, 0xe7, 0xff, 0xff, 0x7e, 0x3c, 0x00, 0x00, 0x00, 0xfe, 0x7b, 0xf3, 0x7f, 0xfb, 0x73, 0xfe,
-};
-// Sprite Definition
-const uint8_t F_ROCKET = 2;
-const uint8_t W_ROCKET = 11;
-static const uint8_t PROGMEM rocket[F_ROCKET * W_ROCKET] =  // rocket
-{
-  0x18, 0x24, 0x42, 0x81, 0x99, 0x18, 0x99, 0x18, 0xa5, 0x5a, 0x81,
-  0x18, 0x24, 0x42, 0x81, 0x18, 0x99, 0x18, 0x99, 0x24, 0x42, 0x99,
-};
+// byte 1..n – one byte for each column of the character.
+uint8_t dot[] = {0x08, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
 
 void createHString(char *pH, char *pL)
 {
@@ -135,7 +97,7 @@ void scroll()
   {
     if (ESP.getChipId() == 0xfcb9ef)
       delay(SCROLL_SPEED * 32);
-
+    
     P.setFont(NULL);
 
     if (Matrix.BigFont)
@@ -151,8 +113,8 @@ void scroll()
     }
     else
     {
-      P.setIntensity(0, Matrix.brightness);
-      P.setCharSpacing(0, 1); // double height --> double spacing
+      P.setIntensity(ZONE_LOWER, Matrix.brightness);
+      P.setCharSpacing(ZONE_LOWER, 1); // double height --> double spacing
       P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
     }
   }
@@ -177,7 +139,7 @@ void flashing()
 
   sprintf(tijd, "%02d%c%02d", h, (flasher ? ':' : ' '), m);
 
-  if (P.getZoneStatus(ZONE_LOWER))
+  if (P.getZoneStatus(ZONE_UPPER))
   { //wait untill animation is done
     P.setIntensity(ZONE_UPPER, 0);
     P.setFont(1, numeric7Seg);
@@ -186,36 +148,21 @@ void flashing()
     sprintf(tijdS, "%02d", s);
     P.setIntensity(ZONE_LOWER, 0);
     P.setFont(0, numeric7Seg);
-    P.setCharSpacing(0,0);
-    //P.displayZoneText(ZONE_LOWER, tijdS, PA_CENTER, 30, 0, PA_PRINT, PA_NO_EFFECT);
-    /*if (s <= 5) 
-    P.displayZoneText(ZONE_LOWER, "$", PA_CENTER, 30, 0, PA_PRINT, PA_NO_EFFECT);
-    else if (s >= 5 && s <30) 
-    P.displayZoneText(ZONE_LOWER, "$$$", PA_CENTER, 30, 0, PA_PRINT, PA_NO_EFFECT);
-    else if (s >= 30 && s <45) 
-    P.displayZoneText(ZONE_LOWER, "$$$$$$", PA_CENTER, 30, 0, PA_PRINT, PA_NO_EFFECT);
-    else if (s >= 45 && s <60) 
-    P.displayZoneText(ZONE_LOWER, "$$$$$$$$$$$$", PA_CENTER, 30, 0, PA_PRINT, PA_NO_EFFECT);
-    else*/
-    //if (s % 2 == 0 )
-    //P.displayZoneText(ZONE_LOWER, "", PA_CENTER, 50, 0, PA_OPENING, PA_CLOSING);
-    //else
-    //P.displayZoneText(ZONE_LOWER, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$", PA_CENTER, 50, 0, PA_OPENING, PA_CLOSING);
-    if (s % 10 == 0) 
-        P.displayZoneText(ZONE_LOWER, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$", PA_LEFT, 40, 0, PA_OPENING, PA_CLOSING);
-   // P.displayZoneText(ZONE_LOWER, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$", PA_LEFT, 50, 0, PA_SPRITE, PA_SPRITE);
-
-    //P.setSpriteData(rocket, W_ROCKET, F_ROCKET, rocket, W_ROCKET, F_ROCKET);
-    //P.setSpriteData(ZONE_LOWER, pacman1, W_PMAN1, F_PMAN1, pacman1, W_PMAN1, F_PMAN1);
-    //P.setSpriteData(pacman1, W_PMAN1a, F_PMAN1a, pacman2, W_PMAN2a, F_PMAN2a);
-    //P.displayText(ZONE_LOWER, "$$$", PA_CENTER, 50, 1000, PA_SPRITE, PA_SPRITE);
-    
-    //P.addChar('$', degC);
-
-    if (s % 2 == 0) flasher = true;
-    else            flasher = false;
+    P.setCharSpacing(0, 0);
+    if (s % 2 == 0)
+      flasher = true;
+    else
+      flasher = false;
   }
-  //sync = false;
+  
+  if (P.getZoneStatus(ZONE_LOWER)) 
+  {
+    { if (s % 10 == 0)
+    P.addChar('$', dot);
+    P.displayZoneText(ZONE_LOWER, "$$$$", PA_LEFT, 40, 0, PA_OPENING, PA_CLOSING);
+    }
+  }
+
 }
 
 void setup()
@@ -236,8 +183,6 @@ void setup()
   P.displayZoneText(ZONE_LOWER, ". . .", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
   P.displayAnimate();
 
-  P.addChar('$', dot);
-
   WiFiManager wifiManager;
   wifiManager.setConnectTimeout(15);
   wifiManager.autoConnect("AutoConnectAP");
@@ -245,12 +190,10 @@ void setup()
   mqttSetup();
 
   //WELCOME ANIMATION
-  P.displayZoneText(ZONE_UPPER, "", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
-  P.displayZoneText(ZONE_LOWER, "", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+  P.displayClear();
   P.displayAnimate();
   P.displayZoneText(ZONE_UPPER, "|", PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_RIGHT);
   P.displayZoneText(ZONE_LOWER, "|", PA_LEFT, 30, 0, PA_SCROLL_LEFT, PA_SCROLL_RIGHT);
-
 
   //ArduinoOTA.setHostname("ESP8266_MATRIX");
   // No authentication by default
