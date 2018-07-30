@@ -13,18 +13,9 @@
 #define MQTT_USER "mdel"
 #define MQTT_PW "Yamaha01v"
 
-//#include <WiFiManager.h>
-//extern WiFiManager wifiManager;
 extern AsyncMqttClient mqttClient;
 extern Ticker mqttReconnectTimer;
-//extern char* mqttMessage;
-extern char* mqttTemp[];
-//extern String weatherIcon;
-extern char temperature[];
-extern char weatherSummary[];
 
-//z pText align speed pause effectIn effectOut
-//P.displayZoneText(ZONE_LOWER, ota, PA_LEFT, 0, 0, PA_PRINT, PA_NO_EFFECT);
 struct matrix
 {
     int     zone;
