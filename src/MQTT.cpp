@@ -34,6 +34,7 @@ void connectToMqtt()
 void onMqttConnect(bool sessionPresent)
 {
     uint16_t packetIdSub1 = mqttClient.subscribe("display/matrix", 2);
+    uint16_t packetIdSub2 = mqttClient.subscribe("display/matrix/sync", 0);
     snprintf(nodeID, 22, "%s%02x%s", "display/matrix/", (long)ESP.getChipId(), "/");
     mqttClient.publish(nodeID, 0, true, "ONLINE");
     mqttClient.setWill(nodeID, 0, true, "OFFLINE");
@@ -89,7 +90,7 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
     Serial.print("  total: ");
     Serial.println(total);
 
-    if (strcmp(topic, "display/matrix") == 0)
+    if (strcmp(topic, "display/matrix") == 0 || strcmp(topic, "display/matrix/sync") == 0)
     {
         StaticJsonBuffer<200> jsonBuffer;
         JsonObject &root = jsonBuffer.parseObject(payload);

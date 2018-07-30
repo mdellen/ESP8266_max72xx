@@ -116,6 +116,10 @@ void scroll()
     }
     else
     {
+      P.setIntensity(ZONE_UPPER, 0);
+      P.setFont(ZONE_UPPER, numeric7Seg);
+      P.setCharSpacing(ZONE_UPPER, 2);
+      
       P.setIntensity(ZONE_LOWER, Matrix.brightness);
       P.setCharSpacing(ZONE_LOWER, 1); // double height --> double spacing
       P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
@@ -145,8 +149,8 @@ void flashing()
   if (P.getZoneStatus(ZONE_UPPER))
   { //wait untill animation is done
     P.setIntensity(ZONE_UPPER, 0);
-    P.setFont(1, numeric7Seg);
-    P.setCharSpacing(1, 2);
+    P.setFont(ZONE_UPPER, numeric7Seg);
+    P.setCharSpacing(ZONE_UPPER, 2);
     P.displayZoneText(ZONE_UPPER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
     if (s % 2 == 0) flasher = true;
     else            flasher = false;
