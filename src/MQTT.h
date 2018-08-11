@@ -11,7 +11,7 @@
 #define MQTT_HOST IPAddress(77,174,82,246) // www.mennovandellen.nl
 #define MQTT_PORT 1883
 #define MQTT_USER "mdel"
-#define MQTT_PW "Yamaha01v"
+#define MQTT_PW "muggen"
 
 extern AsyncMqttClient mqttClient;
 extern Ticker mqttReconnectTimer;
