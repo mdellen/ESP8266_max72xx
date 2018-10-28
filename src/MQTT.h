@@ -10,8 +10,8 @@
 #include <AsyncMqttClient.h>
 #define MQTT_HOST IPAddress(77,174,82,246) // www.mennovandellen.nl
 #define MQTT_PORT 1883
-#define MQTT_USER "mdel"
-#define MQTT_PW "muggen"
+#define MQTT_USER "matrix"
+#define MQTT_PW "ledje"
 
 extern AsyncMqttClient mqttClient;
 extern Ticker mqttReconnectTimer;

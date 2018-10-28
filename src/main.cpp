@@ -63,8 +63,8 @@ MD_Parola P = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
 // Create the graphics library object, passing through the Parola MD_MAX72XX graphic object
 //MD_MAXPanel MP = MD_MAXPanel(P.getGraphicObject(), MAX_DEVICES, 1);
 const char *ntpServer = "nl.pool.ntp.org";
-const long gmtOffset_sec = 7200;
-const int daylightOffset_sec = 0;
+const long gmtOffset_sec = 3600;
+const int daylightOffset_sec = 3600;
 static char tijd[7];
 static char tijdS[7];
 static bool flasher = false;
@@ -127,6 +127,7 @@ void scroll()
       P.setIntensity(ZONE_LOWER, Matrix.brightness);
       P.setCharSpacing(ZONE_LOWER, 1); // double height --> double spacing
       P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
+      //P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME , PA_PRINT, PA_NO_EFFECT);
     }
   }
 }
@@ -160,7 +161,7 @@ void flashing()
     else            flasher = false;
   }
 
-  if (P.getZoneStatus(ZONE_LOWER)) 
+ /* if (P.getZoneStatus(ZONE_LOWER)) 
   {
     if (s % 10 == 0)
     {
@@ -169,7 +170,7 @@ void flashing()
       P.setCharSpacing(0, 0);
       P.displayZoneText(ZONE_LOWER, "$$$$", PA_LEFT, 40, 0, PA_OPENING, PA_CLOSING);
     }
-  }
+  }*/
 
 }
 
