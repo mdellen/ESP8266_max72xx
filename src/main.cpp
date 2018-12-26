@@ -105,7 +105,6 @@ void scroll()
       delay(SCROLL_SPEED * 32);
     
     P.setFont(NULL);
-    
 
     if (Matrix.BigFont)
     {
@@ -151,9 +150,19 @@ void flashing()
 
   sprintf(tijd, "%02d%c%02d", h, (flasher ? ':' : ' '), m);
 
+
   if (P.getZoneStatus(ZONE_UPPER))
   { //wait untill animation is done
     //P.setIntensity(ZONE_UPPER, 0);
+   if (Matrix.flip) {
+     P.setZoneEffect(ZONE_UPPER, false, PA_FLIP_LR);
+     P.setZoneEffect(ZONE_LOWER, true,  PA_FLIP_LR);
+   }
+   else  {
+     P.setZoneEffect(ZONE_UPPER, true,  PA_FLIP_LR);
+     P.setZoneEffect(ZONE_LOWER, false, PA_FLIP_LR);
+   }
+
     if (Matrix.brightness) P.setIntensity(Matrix.brightness);
     else P.setIntensity(4);
     P.setFont(ZONE_UPPER, numeric7Seg);
@@ -184,6 +193,7 @@ void setup()
   P.begin(MAX_ZONES);
   Matrix.sync = false;
   Matrix.BigFont = false;
+  Matrix.flip = false;
   // Set up zones for 2 halves of the display
   P.setZone(ZONE_LOWER, 0, ZONE_SIZE - 1);
   P.setZone(ZONE_UPPER, ZONE_SIZE, MAX_DEVICES - 1);

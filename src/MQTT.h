@@ -28,11 +28,11 @@ struct matrix
     int     brightness;
     unsigned long  UTC;
     bool    BigFont;
+    bool    flip;
     bool    sync;
     unsigned long offset;
     bool    newMessage;
     bool    reset;
-    bool    flip;
 };
 
 void scroll();
