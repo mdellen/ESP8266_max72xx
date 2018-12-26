@@ -33,11 +33,8 @@ extern struct matrix Matrix;
 // Define the number of devices we have in the chain and the hardware interface
 #define HARDWARE_TYPE MD_MAX72XX::FC16_HW
 
-//#define MAX_ZONES 2
 #define ZONE_SIZE 4
-//#define MAX_DEVICES (MAX_ZONES * ZONE_SIZE)
 #define MAX_DEVICES 8
-//#define MAX_DEVICES 8
 #define CLK_PIN D5  // or SCK
 #define DATA_PIN D7 // or MOSI
 #define CS_PIN D8   // or SS
@@ -100,17 +97,20 @@ void resetNode()
 void scroll()
 {
   //if (P.getZoneStatus(ZONE_LOWER) && P.getZoneStatus(ZONE_UPPER) && (Matrix.message[0] != '\0'))
+
+
   if (Matrix.message[0] != '\0')
   {
     if (ESP.getChipId() == 0xfcb9ef)
       delay(SCROLL_SPEED * 32);
     
     P.setFont(NULL);
+    
 
     if (Matrix.BigFont)
     {
       P.displayClear();
-      P.setIntensity(Matrix.brightness);
+      //P.setIntensity(Matrix.brightness);
       P.setCharSpacing(5); // double height --> double spacing
       P.setFont(ZONE_UPPER, BigFontUpper);
       P.setFont(ZONE_LOWER, BigFontLower);
@@ -120,11 +120,11 @@ void scroll()
     }
     else
     {
-      P.setIntensity(ZONE_UPPER, 0);
+      //P.setIntensity(ZONE_UPPER, 0);
       P.setFont(ZONE_UPPER, numeric7Seg);
       P.setCharSpacing(ZONE_UPPER, 2);
       
-      P.setIntensity(ZONE_LOWER, Matrix.brightness);
+      //P.setIntensity(ZONE_LOWER, Matrix.brightness);
       P.setCharSpacing(ZONE_LOWER, 1); // double height --> double spacing
       P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
       //P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME , PA_PRINT, PA_NO_EFFECT);
@@ -153,7 +153,9 @@ void flashing()
 
   if (P.getZoneStatus(ZONE_UPPER))
   { //wait untill animation is done
-    P.setIntensity(ZONE_UPPER, 0);
+    //P.setIntensity(ZONE_UPPER, 0);
+    if (Matrix.brightness) P.setIntensity(Matrix.brightness);
+    else P.setIntensity(4);
     P.setFont(ZONE_UPPER, numeric7Seg);
     P.setCharSpacing(ZONE_UPPER, 2);
     P.displayZoneText(ZONE_UPPER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);

@@ -32,6 +32,7 @@ struct matrix
     unsigned long offset;
     bool    newMessage;
     bool    reset;
+    bool    flip;
 };
 
 void scroll();
