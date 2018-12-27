@@ -102,7 +102,7 @@ void scroll()
   if (Matrix.message[0] != '\0')
   {
     if (ESP.getChipId() == 0xfcb9ef)
-      delay(SCROLL_SPEED * 32);
+      //delay(SCROLL_SPEED * 32);
     
     P.setFont(NULL);
 

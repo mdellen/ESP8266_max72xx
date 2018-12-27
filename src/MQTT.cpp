@@ -90,7 +90,7 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
     Serial.print("  total: ");
     Serial.println(total);
 
-    if (strcmp(topic, "display/matrix") == 0)
+    if ((strcmp(topic, "display/matrix") == 0) || (strcmp(topic, nodeID) == 0))
     {
         StaticJsonBuffer<200> jsonBuffer;
         JsonObject &root = jsonBuffer.parseObject(payload);
@@ -140,9 +140,17 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
             timeshift64_is_set = true;
             Matrix.sync = true;
         }
+        if (root.containsKey("reset"))
+        {
+            Matrix.reset = root["reset"];
+            if (!Matrix.reset) {
+                   ESP.reset();
+                   delay(5000);
+            }
+        }
         
     }
-    if (strcmp(topic, nodeID) == 0)
+   /* if (strcmp(topic, nodeID) == 0)
     {
         StaticJsonBuffer<200> jsonBuffer;
         JsonObject &root = jsonBuffer.parseObject(payload);
@@ -159,9 +167,11 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
                    delay(5000);
             }
         }
+        if (root.containsKey("mirror"))
+        Matrix.mirror = root["mirror"];
     }
 
-
+*/
 }
 
 void onMqttPublish(uint16_t packetId)
