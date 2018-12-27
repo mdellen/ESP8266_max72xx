@@ -113,8 +113,14 @@ void scroll()
       P.setCharSpacing(5); // double height --> double spacing
       P.setFont(ZONE_UPPER, BigFontUpper);
       P.setFont(ZONE_LOWER, BigFontLower);
-      P.displayZoneText(ZONE_UPPER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_UPPER, SCROLL_UPPER);
-      P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
+      if(Matrix.flip) {
+        P.displayZoneText(ZONE_UPPER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
+        P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_UPPER, SCROLL_UPPER);
+      }
+      else { 
+        P.displayZoneText(ZONE_UPPER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_UPPER, SCROLL_UPPER);
+        P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
+      }
       P.synchZoneStart();
     }
     else
@@ -125,8 +131,9 @@ void scroll()
       
       //P.setIntensity(ZONE_LOWER, Matrix.brightness);
       P.setCharSpacing(ZONE_LOWER, 1); // double height --> double spacing
-      P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
-      //P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME , PA_PRINT, PA_NO_EFFECT);
+      if(Matrix.flip)   P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_UPPER, SCROLL_UPPER);
+      else              P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
+  
     }
   }
 }
@@ -163,7 +170,7 @@ void flashing()
      P.setZoneEffect(ZONE_LOWER, false, PA_FLIP_LR);
    }
 
-    if (Matrix.brightness) P.setIntensity(Matrix.brightness);
+    if (Matrix.brightness != '\0') P.setIntensity(Matrix.brightness);
     else P.setIntensity(4);
     P.setFont(ZONE_UPPER, numeric7Seg);
     P.setCharSpacing(ZONE_UPPER, 2);
