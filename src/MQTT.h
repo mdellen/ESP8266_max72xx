@@ -28,6 +28,7 @@ struct matrix
     int     brightness;
     unsigned long  UTC;
     bool    BigFont;
+    bool    mirror;
     bool    flip;
     bool    sync;
     unsigned long offset;

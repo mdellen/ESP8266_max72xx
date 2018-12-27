@@ -128,6 +128,8 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
             Matrix.brightness = root["brightness"];
         if (root.containsKey("BigFont"))
             Matrix.BigFont = root["BigFont"];
+        if (root.containsKey("mirror"))
+            Matrix.mirror = root["mirror"];
         if (root.containsKey("flip"))
             Matrix.flip = root["flip"];
         if (root.containsKey("UTC"))

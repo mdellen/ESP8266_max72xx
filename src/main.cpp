@@ -113,7 +113,7 @@ void scroll()
       P.setCharSpacing(5); // double height --> double spacing
       P.setFont(ZONE_UPPER, BigFontUpper);
       P.setFont(ZONE_LOWER, BigFontLower);
-      if(Matrix.flip) {
+      if(Matrix.mirror) {
         P.displayZoneText(ZONE_UPPER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
         P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_UPPER, SCROLL_UPPER);
       }
@@ -131,7 +131,7 @@ void scroll()
       
       //P.setIntensity(ZONE_LOWER, Matrix.brightness);
       P.setCharSpacing(ZONE_LOWER, 1); // double height --> double spacing
-      if(Matrix.flip)   P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_UPPER, SCROLL_UPPER);
+      if(Matrix.mirror)   P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_UPPER, SCROLL_UPPER);
       else              P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
   
     }
@@ -161,7 +161,7 @@ void flashing()
   if (P.getZoneStatus(ZONE_UPPER))
   { //wait untill animation is done
     //P.setIntensity(ZONE_UPPER, 0);
-   if (Matrix.flip) {
+   if (Matrix.mirror) {
      P.setZoneEffect(ZONE_UPPER, false, PA_FLIP_LR);
      P.setZoneEffect(ZONE_LOWER, true,  PA_FLIP_LR);
    }
@@ -170,8 +170,9 @@ void flashing()
      P.setZoneEffect(ZONE_LOWER, false, PA_FLIP_LR);
    }
 
-    if (Matrix.brightness != '\0') P.setIntensity(Matrix.brightness);
-    else P.setIntensity(4);
+    //if (Matrix.brightness != '\0')
+    P.setIntensity(Matrix.brightness);
+    //else P.setIntensity(4);
     P.setFont(ZONE_UPPER, numeric7Seg);
     P.setCharSpacing(ZONE_UPPER, 2);
     P.displayZoneText(ZONE_UPPER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
@@ -200,6 +201,7 @@ void setup()
   P.begin(MAX_ZONES);
   Matrix.sync = false;
   Matrix.BigFont = false;
+  Matrix.mirror = false;
   Matrix.flip = false;
   // Set up zones for 2 halves of the display
   P.setZone(ZONE_LOWER, 0, ZONE_SIZE - 1);
