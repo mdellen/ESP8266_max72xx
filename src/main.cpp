@@ -111,8 +111,15 @@ void scroll()
       P.displayClear();
       //P.setIntensity(Matrix.brightness);
       P.setCharSpacing(5); // double height --> double spacing
-      P.setFont(ZONE_UPPER, BigFontUpper);
-      P.setFont(ZONE_LOWER, BigFontLower);
+      if (Matrix.flip){
+        P.setFont(ZONE_LOWER, BigFontUpper);
+        P.setFont(ZONE_UPPER, BigFontLower);
+      }
+      else {
+        P.setFont(ZONE_UPPER, BigFontUpper);
+        P.setFont(ZONE_LOWER, BigFontLower);
+      }
+
       if(Matrix.mirror) {
         P.displayZoneText(ZONE_UPPER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
         P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_UPPER, SCROLL_UPPER);
@@ -123,17 +130,23 @@ void scroll()
       }
       P.synchZoneStart();
     }
+
     else
     {
-      //P.setIntensity(ZONE_UPPER, 0);
-      P.setFont(ZONE_UPPER, numeric7Seg);
-      P.setCharSpacing(ZONE_UPPER, 2);
-      
-      //P.setIntensity(ZONE_LOWER, Matrix.brightness);
-      P.setCharSpacing(ZONE_LOWER, 1); // double height --> double spacing
-      if(Matrix.mirror)   P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_UPPER, SCROLL_UPPER);
-      else              P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
-  
+      if (Matrix.flip) {
+        P.setFont(ZONE_LOWER, numeric7Seg);
+        P.setCharSpacing(ZONE_LOWER, 2);
+        P.setCharSpacing(ZONE_UPPER, 1); // double height --> double spacing
+        if(Matrix.mirror)   P.displayZoneText(ZONE_UPPER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
+        else                P.displayZoneText(ZONE_UPPER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_UPPER, SCROLL_UPPER);
+      }
+      else{
+        P.setFont(ZONE_UPPER, numeric7Seg);
+        P.setCharSpacing(ZONE_UPPER, 2);
+        P.setCharSpacing(ZONE_LOWER, 1); // double height --> double spacing
+        if(Matrix.mirror)   P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_UPPER, SCROLL_UPPER);
+      else                P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
+      }
     }
   }
 }
@@ -157,10 +170,8 @@ void flashing()
 
   sprintf(tijd, "%02d%c%02d", h, (flasher ? ':' : ' '), m);
 
-
   if (P.getZoneStatus(ZONE_UPPER))
-  { //wait untill animation is done
-    //P.setIntensity(ZONE_UPPER, 0);
+  { 
    if (Matrix.mirror) {
      P.setZoneEffect(ZONE_UPPER, false, PA_FLIP_LR);
      P.setZoneEffect(ZONE_LOWER, true,  PA_FLIP_LR);
@@ -170,12 +181,22 @@ void flashing()
      P.setZoneEffect(ZONE_LOWER, false, PA_FLIP_LR);
    }
 
-    //if (Matrix.brightness != '\0')
-    P.setIntensity(Matrix.brightness);
-    //else P.setIntensity(4);
-    P.setFont(ZONE_UPPER, numeric7Seg);
-    P.setCharSpacing(ZONE_UPPER, 2);
-    P.displayZoneText(ZONE_UPPER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+   P.setIntensity(Matrix.brightness);
+
+   if (Matrix.flip) {
+      P.setZoneEffect(ZONE_UPPER, false, PA_FLIP_UD);
+      P.setZoneEffect(ZONE_LOWER, true,  PA_FLIP_UD);
+      P.setFont(ZONE_LOWER, numeric7Seg);
+      P.setCharSpacing(ZONE_LOWER, 2);
+      P.displayZoneText(ZONE_LOWER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+   }
+   else {
+      P.setZoneEffect(ZONE_UPPER, true,  PA_FLIP_UD);
+      P.setZoneEffect(ZONE_LOWER, false, PA_FLIP_UD);P.setFont(ZONE_UPPER, numeric7Seg);
+      P.setCharSpacing(ZONE_UPPER, 2);
+      P.displayZoneText(ZONE_UPPER, tijd, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+   }
+
     if (s % 2 == 0) flasher = true;
     else            flasher = false;
   }
