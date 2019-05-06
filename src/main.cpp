@@ -60,7 +60,7 @@ MD_Parola P = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
 // Create the graphics library object, passing through the Parola MD_MAX72XX graphic object
 //MD_MAXPanel MP = MD_MAXPanel(P.getGraphicObject(), MAX_DEVICES, 1);
 const char *ntpServer = "nl.pool.ntp.org";
-const long gmtOffset_sec = 3600;
+const long gmtOffset_sec = 7200;
 const int daylightOffset_sec = 3600;
 static char tijd[7];
 static char tijdS[7];
@@ -94,11 +94,29 @@ void resetNode()
    ESP.reset();
    delay(5000);
 }
+
 void scroll()
 {
   //if (P.getZoneStatus(ZONE_LOWER) && P.getZoneStatus(ZONE_UPPER) && (Matrix.message[0] != '\0'))
+  /*if (Matrix.speed) {
+    #undef  SCROLL_SPEED
+    #define SCROLL_SPEED 0
+  }
+  else {    
+    #undef  SCROLL_SPEED
+    #define SCROLL_SPEED 30
+  }
 
-
+  #undef SCROLL_UPPER
+  #undef SCROLL_LOWER
+  #if SCROLL_SPEED
+  #define SCROLL_UPPER PA_PRINT
+  #define SCROLL_LOWER PA_PRINT
+  #else // invert and scroll right
+  #define SCROLL_UPPER PA_SCROLL_LEFT
+  #define SCROLL_LOWER PA_SCROLL_RIGHT
+  #endif
+*/
   if (Matrix.message[0] != '\0')
   {
     //if (ESP.getChipId() == 0xfcb9ef)
@@ -145,7 +163,7 @@ void scroll()
         P.setCharSpacing(ZONE_UPPER, 2);
         P.setCharSpacing(ZONE_LOWER, 1); // double height --> double spacing
         if(Matrix.mirror)   P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_UPPER, SCROLL_UPPER);
-      else                P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
+        else                P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, SCROLL_SPEED, PAUSE_TIME, SCROLL_LOWER, SCROLL_LOWER);
       }
     }
   }
