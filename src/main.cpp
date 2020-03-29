@@ -60,7 +60,7 @@ MD_Parola P = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
 // Create the graphics library object, passing through the Parola MD_MAX72XX graphic object
 //MD_MAXPanel MP = MD_MAXPanel(P.getGraphicObject(), MAX_DEVICES, 1);
 const char *ntpServer = "nl.pool.ntp.org";
-const long gmtOffset_sec = 3600;
+const long gmtOffset_sec = 7200;
 const int daylightOffset_sec = 0;
 static char tijd[7];
 static char tijdS[7];
