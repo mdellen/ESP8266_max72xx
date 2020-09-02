@@ -21,6 +21,7 @@
 #include <WiFiManager.h>
 #include <SPI.h>
 #include <time.h>
+#include "TZ.h"
 #include <sys/time.h> // struct timeval
 #include <Ticker.h>
 #include <mqtt.h>
@@ -57,13 +58,10 @@ extern struct matrix Matrix;
 #define SCROLL_SPEED 30
 
 MD_Parola P = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
-// Create the graphics library object, passing through the Parola MD_MAX72XX graphic object
-//MD_MAXPanel MP = MD_MAXPanel(P.getGraphicObject(), MAX_DEVICES, 1);
-const char *ntpServer = "nl.pool.ntp.org";
-const long gmtOffset_sec = 7200;
-const int daylightOffset_sec = 0;
+
 static char tijd[7];
 static char tijdS[7];
+
 static bool flasher = false;
 
 timeval cbtime;
@@ -97,27 +95,7 @@ void resetNode()
 
 void scroll()
 {
-  //if (P.getZoneStatus(ZONE_LOWER) && P.getZoneStatus(ZONE_UPPER) && (Matrix.message[0] != '\0'))
-  /*if (Matrix.speed) {
-    #undef  SCROLL_SPEED
-    #define SCROLL_SPEED 0
-  }
-  else {    
-    #undef  SCROLL_SPEED
-    #define SCROLL_SPEED 30
-  }
-
-  #undef SCROLL_UPPER
-  #undef SCROLL_LOWER
-  #if SCROLL_SPEED
-  #define SCROLL_UPPER PA_PRINT
-  #define SCROLL_LOWER PA_PRINT
-  #else // invert and scroll right
-  #define SCROLL_UPPER PA_SCROLL_LEFT
-  #define SCROLL_LOWER PA_SCROLL_RIGHT
-  #endif
-*/
-  if (Matrix.message[0] != '\0')
+   if (Matrix.message[0] != '\0')
   {
     //if (ESP.getChipId() == 0xfcb9ef)
       //delay(SCROLL_SPEED * 32);
@@ -182,7 +160,7 @@ void flashing()
   timeinfo = gmtime(&now);
 
   int h, m, s;
-  h = timeinfo->tm_hour;
+  h = timeinfo->tm_hour+2; //workaround for time offset
   m = timeinfo->tm_min;
   s = timeinfo->tm_sec;
 
@@ -250,13 +228,25 @@ void setup()
   P.setZoneEffect(ZONE_UPPER, true, PA_FLIP_LR);
 
   P.displayZoneText(ZONE_UPPER, "Wi-Fi", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
-  P.displayZoneText(ZONE_LOWER, ". . .", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+  P.displayZoneText(ZONE_LOWER, ". . . .", PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
   P.displayAnimate();
 
   
   wifiManager.setConnectTimeout(15);
   wifiManager.autoConnect("AutoConnectAP");
-  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+
+  //configTime(TZ_Europe_Paris, "pool.ntp.org"); // check TZ.h, find your location
+  
+  if (esp8266::coreVersionNumeric() >= 20700000)
+  {
+    configTime("CET-1CEST,M3.5.0/02,M10.5.0/03", "pool.ntp.org"); // check TZ.h, find your location
+  }
+  else
+  {
+    setenv("TZ", "CET-1CEST,M3.5.0/02,M10.5.0/03" , 1);
+    configTime(7200, 0, "pool.ntp.org");
+  }
+
   mqttSetup();
 
   //WELCOME ANIMATION
