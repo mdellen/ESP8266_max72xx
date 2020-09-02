@@ -92,57 +92,59 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
 
     if ((strcmp(topic, "display/matrix") == 0) || (strcmp(topic, nodeID) == 0))
     {
-        StaticJsonBuffer<200> jsonBuffer;
-        JsonObject &root = jsonBuffer.parseObject(payload);
-        if (!root.success())
-        {
-            Serial.println("parseObject() failed");
+        StaticJsonDocument<200> jsonBuffer;
+        //JsonObject &jsonBuffer = jsonBuffer.parseObject(payload);  //json 5
+
+        auto error = deserializeJson(jsonBuffer, payload); //json 6
+        if (error) {
+            Serial.print(F("deserializeJson() failed with code "));
+            Serial.println(error.c_str());
             return;
         }
 
-        if (root.containsKey("zone"))
-            Matrix.zone = root["zone"];
-        if (root.containsKey("message"))
+        if (jsonBuffer.containsKey("zone"))
+            Matrix.zone = jsonBuffer["zone"];
+        if (jsonBuffer.containsKey("message"))
         {
-            strncpy(Matrix.message, root["message"], 200);
+            strncpy(Matrix.message, jsonBuffer["message"], 200);
             Matrix.newMessage = true;
         }
-        if (root.containsKey("align"))
+        if (jsonBuffer.containsKey("align"))
         {
-            if (root["align"] = "LEFT")
+            if (jsonBuffer["align"] = "LEFT")
                 Matrix.align = PA_LEFT;
-            else if (root["align"] = "CENTER")
+            else if (jsonBuffer["align"] = "CENTER")
                 Matrix.align = PA_CENTER;
-            else if (root["align"] = "RIGHT")
+            else if (jsonBuffer["align"] = "RIGHT")
                 Matrix.align = PA_RIGHT;
         }
-        if (root.containsKey("speed"))
-            Matrix.speed = root["speed"];
-        if (root.containsKey("pause"))
-            Matrix.pause = root["pause"];
-        if (root.containsKey("effectIn"))
-            Matrix.effectIn = root["effectIn"];
-        if (root.containsKey("effectOut"))
-            Matrix.effectOut = root["effectOut"];
-        if (root.containsKey("brightness"))
-            Matrix.brightness = root["brightness"];
-        if (root.containsKey("BigFont"))
-            Matrix.BigFont = root["BigFont"];
-        if (root.containsKey("mirror"))
-            Matrix.mirror = root["mirror"];
-        if (root.containsKey("flip"))
-            Matrix.flip = root["flip"];
-        if (root.containsKey("UTC"))
+        if (jsonBuffer.containsKey("speed"))
+            Matrix.speed = jsonBuffer["speed"];
+        if (jsonBuffer.containsKey("pause"))
+            Matrix.pause = jsonBuffer["pause"];
+        if (jsonBuffer.containsKey("effectIn"))
+            Matrix.effectIn = jsonBuffer["effectIn"];
+        if (jsonBuffer.containsKey("effectOut"))
+            Matrix.effectOut = jsonBuffer["effectOut"];
+        if (jsonBuffer.containsKey("brightness"))
+            Matrix.brightness = jsonBuffer["brightness"];
+        if (jsonBuffer.containsKey("BigFont"))
+            Matrix.BigFont = jsonBuffer["BigFont"];
+        if (jsonBuffer.containsKey("mirror"))
+            Matrix.mirror = jsonBuffer["mirror"];
+        if (jsonBuffer.containsKey("flip"))
+            Matrix.flip = jsonBuffer["flip"];
+        if (jsonBuffer.containsKey("UTC"))
         {
-            Matrix.UTC = root["UTC"];
+            Matrix.UTC = jsonBuffer["UTC"];
             //tune_timeshift64(Matrix.UTC); TEST WITH 0
             tune_timeshift64(0);
             timeshift64_is_set = true;
             Matrix.sync = true;
         }
-        if (root.containsKey("reset"))
+        if (jsonBuffer.containsKey("reset"))
         {
-            Matrix.reset = root["reset"];
+            Matrix.reset = jsonBuffer["reset"];
             if (!Matrix.reset) {
                    ESP.reset();
                    delay(5000);
@@ -152,23 +154,23 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
     }
    /* if (strcmp(topic, nodeID) == 0)
     {
-        StaticJsonBuffer<200> jsonBuffer;
-        JsonObject &root = jsonBuffer.parseObject(payload);
-        if (!root.success())
+        StaticJsonDocument<200> jsonBuffer;
+        JsonObject &jsonBuffer = jsonBuffer.parseObject(payload);
+        if (!jsonBuffer.success())
         {
             Serial.println("parseObject() failed");
             return;
         }
-        if (root.containsKey("reset"))
+        if (jsonBuffer.containsKey("reset"))
         {
-            Matrix.reset = root["reset"];
+            Matrix.reset = jsonBuffer["reset"];
             if (!Matrix.reset) {
                    ESP.reset();
                    delay(5000);
             }
         }
-        if (root.containsKey("mirror"))
-        Matrix.mirror = root["mirror"];
+        if (jsonBuffer.containsKey("mirror"))
+        Matrix.mirror = jsonBuffer["mirror"];
     }
 
 */

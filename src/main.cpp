@@ -237,7 +237,8 @@ void setup()
   Serial.begin(115200);
   Serial.println("\n Starting");
 
-  P.begin(MAX_ZONES);
+  //P.begin(MAX_ZONES);
+  P.begin(2);
   Matrix.sync = false;
   Matrix.BigFont = false;
   Matrix.mirror = false;
