@@ -34,6 +34,7 @@ struct matrix
     unsigned long offset;
     bool    newMessage;
     bool    reset;
+    bool    permanent;
 };
 
 void scroll();

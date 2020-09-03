@@ -134,6 +134,8 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
             Matrix.mirror = jsonBuffer["mirror"];
         if (jsonBuffer.containsKey("flip"))
             Matrix.flip = jsonBuffer["flip"];
+        if (jsonBuffer.containsKey("permanent"))
+            Matrix.permanent = jsonBuffer["permanent"];
         if (jsonBuffer.containsKey("UTC"))
         {
             Matrix.UTC = jsonBuffer["UTC"];

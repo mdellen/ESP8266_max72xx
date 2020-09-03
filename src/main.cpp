@@ -313,7 +313,12 @@ void loop()
 
   if (Matrix.newMessage)
   {
-    scroll();
+    if (Matrix.permanent)
+    {
+      P.displayZoneText(ZONE_LOWER, Matrix.message, PA_CENTER, 0, 0, PA_PRINT, PA_NO_EFFECT);
+    }
+    else scroll();
+    
     Matrix.newMessage = false;
     Matrix.sync = false;
   }
