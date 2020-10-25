@@ -160,7 +160,7 @@ void flashing()
   timeinfo = gmtime(&now);
 
   int h, m, s;
-  h = timeinfo->tm_hour+2; //workaround for time offset
+  h = timeinfo->tm_hour+1; //workaround for time offset (+1 summertime, +2 wintertime)
   m = timeinfo->tm_min;
   s = timeinfo->tm_sec;
 
@@ -244,8 +244,7 @@ void setup()
   else
   {
     setenv("TZ", "CET-1CEST,M3.5.0/02,M10.5.0/03" , 1);
-    //configTime(7200, 0, "pool.ntp.org"); //summertime
-    configTime(3600, 0, "pool.ntp.org"); //wintertime
+    configTime(0, 0, "pool.ntp.org"); //time offset does not work
   }
 
   mqttSetup();
