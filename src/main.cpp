@@ -244,7 +244,8 @@ void setup()
   else
   {
     setenv("TZ", "CET-1CEST,M3.5.0/02,M10.5.0/03" , 1);
-    configTime(7200, 0, "pool.ntp.org");
+    //configTime(7200, 0, "pool.ntp.org"); //summertime
+    configTime(3600, 0, "pool.ntp.org"); //wintertime
   }
 
   mqttSetup();
