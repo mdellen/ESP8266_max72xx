@@ -160,7 +160,7 @@ void flashing()
   timeinfo = gmtime(&now);
 
   int h, m, s;
-  h = timeinfo->tm_hour+1; //workaround for time offset (+1 summertime, +2 wintertime)
+  h = timeinfo->tm_hour+2; //workaround for time offset (+1 wintertime, +2 summertinme)
   m = timeinfo->tm_min;
   s = timeinfo->tm_sec;
 
