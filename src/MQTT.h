@@ -8,7 +8,7 @@
 #include <MD_Parola.h>
 
 #include <AsyncMqttClient.h>
-#define MQTT_HOST IPAddress(31,20,75,72) // www.mennovandellen.nl
+#define MQTT_HOST IPAddress(143,178,172,128) // www.mennovandellen.nl (2021.08.12)
 #define MQTT_PORT 1883
 #define MQTT_USER "matrix"
 #define MQTT_PW "ledje"
