@@ -8,6 +8,7 @@
 
 //$ git remote add origin https://github.com/mdellen/ESP8266_max72xx.git
 //$ git push -u origin master
+int summertime = 1;
 
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
@@ -160,7 +161,7 @@ void flashing()
   timeinfo = gmtime(&now);
 
   int h, m, s;
-  h = timeinfo->tm_hour+1; //workaround for time offset (+1 wintertime, +2 summertinme)
+  h = timeinfo->tm_hour+1+summertime; //workaround for time offset (+1 wintertime, +2 summertinme)
   m = timeinfo->tm_min;
   s = timeinfo->tm_sec;
 
@@ -243,7 +244,7 @@ void setup()
   }
   else
   {
-    setenv("TZ", "CET-1CEST,M3.5.0/02,M10.5.0/03" , 1);
+    setenv("TZ", "CET-1CEST,M3.5.0/02,M10.5.0/03" , 2);
     configTime(0, 0, "pool.ntp.org"); //time offset does not work
   }
 

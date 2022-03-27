@@ -141,7 +141,7 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
             Matrix.UTC = jsonBuffer["UTC"];
             //tune_timeshift64(Matrix.UTC); TEST WITH 0
             tune_timeshift64(0);
-            timeshift64_is_set = true;
+            //timeshift64_is_set = true;
             Matrix.sync = true;
         }
         if (jsonBuffer.containsKey("reset"))
