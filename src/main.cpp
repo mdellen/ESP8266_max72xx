@@ -8,7 +8,7 @@
 
 //$ git remote add origin https://github.com/mdellen/ESP8266_max72xx.git
 //$ git push -u origin master
-int summertime = 1;
+int summertime = 0;
 
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
